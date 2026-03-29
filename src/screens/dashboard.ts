@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { createButton, createTitle, createText, createPanel, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS } from "@/config";
 import * as wm from "@/wallet-manager";
 import { shortenAddress, type TxInfo } from "@/ton";
 
@@ -14,7 +14,7 @@ export function dashboardScreen(): Screen {
     fullAddr = wm.getAddress();
   } catch { /* wallet locked */ }
 
-  // ── Address row ───────────────────────────────────────
+  // ── Top row: address + buttons ────────────────────────
 
   const addrLabel = createText("Your address", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   addrLabel.x = PADDING;
@@ -29,21 +29,36 @@ export function dashboardScreen(): Screen {
   addr.y = 28;
   c.addChild(addr);
 
-  const explorerBtn = createButton({
-    label: "Tonscan \u2197",
-    width: 90,
-    height: 24,
+  const smallBtnW = 70;
+  const smallBtnH = 24;
+  const smallBtnStyle = {
+    height: smallBtnH,
     fontSize: 11,
     color: 0x16213e,
     hoverColor: 0x1a2744,
     pressColor: 0x0f1a2e,
+  };
+
+  const settingsBtn = createButton({
+    label: "\u2699 Settings",
+    width: smallBtnW,
+    ...smallBtnStyle,
+    onTap: () => send({ type: "SETTINGS" }),
+  });
+  settingsBtn.x = POPUP_WIDTH - PADDING - smallBtnW;
+  settingsBtn.y = 10;
+  c.addChild(settingsBtn);
+
+  const explorerBtn = createButton({
+    label: "Tonscan \u2197",
+    width: smallBtnW,
+    ...smallBtnStyle,
     onTap: () => {
-      const url = `${TON_TESTNET_EXPLORER}/address/${fullAddr}`;
-      window.open(url, "_blank");
+      window.open(`${TON_TESTNET_EXPLORER}/address/${fullAddr}`, "_blank");
     },
   });
-  explorerBtn.x = POPUP_WIDTH - PADDING - 90;
-  explorerBtn.y = 26;
+  explorerBtn.x = POPUP_WIDTH - PADDING - smallBtnW;
+  explorerBtn.y = 38;
   c.addChild(explorerBtn);
 
   // ── Balance ───────────────────────────────────────────
@@ -51,7 +66,7 @@ export function dashboardScreen(): Screen {
   const balance = createTitle("Loading...", 28);
   balance.anchor.set(0.5);
   balance.x = POPUP_WIDTH / 2;
-  balance.y = 72;
+  balance.y = 80;
   c.addChild(balance);
 
   // ── Action buttons ────────────────────────────────────
@@ -64,7 +79,7 @@ export function dashboardScreen(): Screen {
     onTap: () => send({ type: "RECEIVE" }),
   });
   receiveBtn.x = PADDING;
-  receiveBtn.y = 100;
+  receiveBtn.y = 108;
   c.addChild(receiveBtn);
 
   const sendBtn = createButton({
@@ -73,32 +88,36 @@ export function dashboardScreen(): Screen {
     onTap: () => send({ type: "SEND" }),
   });
   sendBtn.x = PADDING * 2 + btnW;
-  sendBtn.y = 100;
+  sendBtn.y = 108;
   c.addChild(sendBtn);
 
   // ── Transactions ──────────────────────────────────────
+
+  const txHeaderY = 168;
+  const txPanelY = 186;
+  const txPanelH = POPUP_HEIGHT - txPanelY - PADDING;
 
   const txTitle = createText("Transactions", {
     fontSize: FONT_SIZE.subtitle,
     color: COLORS.text,
   });
   txTitle.x = PADDING;
-  txTitle.y = 162;
+  txTitle.y = txHeaderY;
   c.addChild(txTitle);
 
   const lastUpdate = createText("", { fontSize: 10, color: COLORS.textMuted });
   lastUpdate.x = POPUP_WIDTH - PADDING - 60;
-  lastUpdate.y = 166;
+  lastUpdate.y = txHeaderY + 4;
   c.addChild(lastUpdate);
 
-  const panel = createPanel(POPUP_WIDTH - PADDING * 2, 250);
+  const panel = createPanel(POPUP_WIDTH - PADDING * 2, txPanelH);
   panel.x = PADDING;
-  panel.y = 184;
+  panel.y = txPanelY;
   c.addChild(panel);
 
   const txListContainer = new Container();
   txListContainer.x = PADDING + 4;
-  txListContainer.y = 192;
+  txListContainer.y = txPanelY + 8;
   c.addChild(txListContainer);
 
   const noTx = createText("Loading transactions...", {
@@ -107,23 +126,8 @@ export function dashboardScreen(): Screen {
   });
   noTx.anchor.set(0.5);
   noTx.x = POPUP_WIDTH / 2;
-  noTx.y = 310;
+  noTx.y = txPanelY + txPanelH / 2;
   c.addChild(noTx);
-
-  // ── Settings ──────────────────────────────────────────
-
-  const settingsBtn = createButton({
-    label: "Settings",
-    height: 32,
-    fontSize: FONT_SIZE.small,
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
-    onTap: () => send({ type: "SETTINGS" }),
-  });
-  settingsBtn.x = PADDING;
-  settingsBtn.y = 456;
-  c.addChild(settingsBtn);
 
   // ── Render helpers ────────────────────────────────────
 
@@ -139,7 +143,7 @@ export function dashboardScreen(): Screen {
     }
     noTx.visible = false;
 
-    const maxVisible = 7;
+    const maxVisible = Math.floor((txPanelH - 16) / 34);
     const show = txs.slice(0, maxVisible);
     for (let i = 0; i < show.length; i++) {
       const tx = show[i]!;
@@ -175,7 +179,7 @@ export function dashboardScreen(): Screen {
       const bal = await wm.fetchBalance();
       balance.text = `${bal} TON`;
     } catch {
-      // Keep previous balance text on error
+      // Keep previous
     }
 
     await delay(1500);
@@ -184,7 +188,7 @@ export function dashboardScreen(): Screen {
       const txs = await wm.fetchTransactions();
       renderTxList(txs);
     } catch {
-      // Keep previous tx list on error
+      // Keep previous
     }
 
     const now = new Date();

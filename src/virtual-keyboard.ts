@@ -3,6 +3,7 @@ import {
   COLORS,
   FONT_FAMILY,
   POPUP_WIDTH,
+  POPUP_HEIGHT,
   PADDING,
   VK_COLS,
   VK_KEY_HEIGHT,
@@ -185,25 +186,25 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
       keysContainer.addChild(key);
     }
 
-    // Bottom row: Del + Done — full width, split in half
-    const totalRows = Math.ceil(shuffled.length / VK_COLS);
-    const bottomY = totalRows * (VK_KEY_HEIGHT + VK_GAP);
-    const halfW = Math.floor((GRID_W - VK_GAP) / 2);
-
-    const backspace = createKey("\u2190 Del", halfW, VK_KEY_HEIGHT, onBackspace, COLORS.danger);
-    backspace.x = 0;
-    backspace.y = bottomY;
-    keysContainer.addChild(backspace);
-
-    const done = createKey("Done", halfW, VK_KEY_HEIGHT, onDone, COLORS.accent);
-    done.x = halfW + VK_GAP;
-    done.y = bottomY;
-    keysContainer.addChild(done);
-
     container.addChild(keysContainer);
   }
 
   renderKeys();
+
+  // ── Fixed bottom buttons ──────────────────────────────
+
+  const bottomBtnY = POPUP_HEIGHT - PADDING - VK_KEY_HEIGHT;
+  const halfW = Math.floor((GRID_W - VK_GAP) / 2);
+
+  const backspace = createKey("\u2190 Del", halfW, VK_KEY_HEIGHT, onBackspace, COLORS.danger);
+  backspace.x = PADDING;
+  backspace.y = bottomBtnY;
+  container.addChild(backspace);
+
+  const doneBtn = createKey("Done", halfW, VK_KEY_HEIGHT, onDone, COLORS.accent);
+  doneBtn.x = PADDING + halfW + VK_GAP;
+  doneBtn.y = bottomBtnY;
+  container.addChild(doneBtn);
 
   return {
     container,
