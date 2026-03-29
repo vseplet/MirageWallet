@@ -1,13 +1,15 @@
-import { Container } from "pixi.js";
-import { createButton, createTitle, createText, createPanel, SECONDARY_BTN, type Screen } from "@/ui";
+import { Container, Graphics } from "pixi.js";
+import { createButton, createTitle, createText, createPanel, createHtmlInput, removeHtmlElements, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
 import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS, VK_GAP, API_THROTTLE_DELAY_MS, S } from "@/config";
 import * as wm from "@/wallet-manager";
-import { shortenAddress, type TxInfo } from "@/ton";
+import { shortenAddress, searchTransactions, type TxInfo } from "@/ton";
 
 export function dashboardScreen(): Screen {
   const c = new Container();
   let pollTimer: ReturnType<typeof setInterval> | null = null;
+  let searchInput: HTMLInputElement | undefined;
+  let allTxs: TxInfo[] = [];
 
   let fullAddr = "";
   try {
@@ -59,13 +61,37 @@ export function dashboardScreen(): Screen {
   settingsBtn.y = 26;
   c.addChild(settingsBtn);
 
-  // ── Balance ───────────────────────────────────────────
+  // ── Balance (hidden until hover) ──────────────────────
 
-  const balance = createTitle(S.loading, 28);
+  let realBalance = "0.00";
+  const hiddenBalance = S.hiddenBalance;
+
+  const balanceContainer = new Container();
+  balanceContainer.eventMode = "static";
+  balanceContainer.cursor = "default";
+  balanceContainer.x = 0;
+  balanceContainer.y = 60;
+
+  // Hit area for the whole balance row
+  const balanceHit = new Graphics();
+  balanceHit.rect(0, 0, POPUP_WIDTH, 36);
+  balanceHit.fill({ color: 0x000000, alpha: 0.001 });
+  balanceContainer.addChild(balanceHit);
+
+  const balance = createTitle(hiddenBalance, FONT_SIZE.balance);
   balance.anchor.set(0.5);
   balance.x = POPUP_WIDTH / 2;
-  balance.y = 80;
-  c.addChild(balance);
+  balance.y = 18;
+  balanceContainer.addChild(balance);
+
+  balanceContainer.on("pointerover", () => {
+    balance.text = `${realBalance} TON`;
+  });
+  balanceContainer.on("pointerout", () => {
+    balance.text = hiddenBalance;
+  });
+
+  c.addChild(balanceContainer);
 
   // ── Action buttons ────────────────────────────────────
 
@@ -92,7 +118,8 @@ export function dashboardScreen(): Screen {
   // ── Transactions ──────────────────────────────────────
 
   const txHeaderY = 168;
-  const txPanelY = 186;
+  const searchY = txHeaderY + 20;
+  const txPanelY = searchY + 34;
   const txPanelH = POPUP_HEIGHT - txPanelY - PADDING;
 
   const txTitle = createText(S.transactions, {
@@ -103,7 +130,7 @@ export function dashboardScreen(): Screen {
   txTitle.y = txHeaderY;
   c.addChild(txTitle);
 
-  const lastUpdate = createText("", { fontSize: 10, color: COLORS.textMuted });
+  const lastUpdate = createText("", { fontSize: FONT_SIZE.tiny, color: COLORS.textMuted });
   lastUpdate.x = POPUP_WIDTH - PADDING - 60;
   lastUpdate.y = txHeaderY + 4;
   c.addChild(lastUpdate);
@@ -115,7 +142,7 @@ export function dashboardScreen(): Screen {
 
   const txListContainer = new Container();
   txListContainer.x = PADDING + 4;
-  txListContainer.y = txPanelY + 8;
+  txListContainer.y = txPanelY + 6;
   c.addChild(txListContainer);
 
   const noTx = createText(S.loadingTx, {
@@ -135,13 +162,13 @@ export function dashboardScreen(): Screen {
     }
 
     if (txs.length === 0) {
-      noTx.text = S.noTransactions;
+      noTx.text = allTxs.length === 0 ? S.noTransactions : S.noMatches;
       noTx.visible = true;
       return;
     }
     noTx.visible = false;
 
-    const maxVisible = Math.floor((txPanelH - 16) / 34);
+    const maxVisible = Math.floor((txPanelH - 12) / 32);
     const show = txs.slice(0, maxVisible);
     for (let i = 0; i < show.length; i++) {
       const tx = show[i]!;
@@ -154,28 +181,33 @@ export function dashboardScreen(): Screen {
         { fontSize: FONT_SIZE.small, color },
       );
       line.x = 0;
-      line.y = i * 34;
+      line.y = i * 32;
       txListContainer.addChild(line);
 
       if (tx.comment) {
         const cmt = createText(tx.comment, {
-          fontSize: 10,
+          fontSize: FONT_SIZE.tiny,
           color: COLORS.textMuted,
           maxWidth: POPUP_WIDTH - PADDING * 4,
         });
         cmt.x = 0;
-        cmt.y = i * 34 + 15;
+        cmt.y = i * 32 + 14;
         txListContainer.addChild(cmt);
       }
     }
+  }
+
+  function applySearch() {
+    const query = searchInput?.value ?? "";
+    const filtered = searchTransactions(allTxs, query);
+    renderTxList(filtered);
   }
 
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   async function refresh() {
     try {
-      const bal = await wm.fetchBalance();
-      balance.text = `${bal} TON`;
+      realBalance = await wm.fetchBalance();
     } catch {
       // Keep previous
     }
@@ -183,8 +215,8 @@ export function dashboardScreen(): Screen {
     await delay(API_THROTTLE_DELAY_MS);
 
     try {
-      const txs = await wm.fetchTransactions();
-      renderTxList(txs);
+      allTxs = await wm.fetchTransactions();
+      applySearch();
     } catch {
       // Keep previous
     }
@@ -198,6 +230,17 @@ export function dashboardScreen(): Screen {
   return {
     container: c,
     onEnter: async () => {
+      // Search input
+      searchInput = createHtmlInput({
+        x: PADDING,
+        y: searchY,
+        width: POPUP_WIDTH - PADDING * 2,
+        height: 28,
+        placeholder: S.searchPlaceholder,
+        fontSize: FONT_SIZE.small,
+      });
+      searchInput.addEventListener("input", applySearch);
+
       await refresh();
       pollTimer = setInterval(refresh, POLL_INTERVAL_MS);
     },
@@ -206,6 +249,8 @@ export function dashboardScreen(): Screen {
         clearInterval(pollTimer);
         pollTimer = null;
       }
+      removeHtmlElements(searchInput);
+      searchInput = undefined;
     },
   };
 }

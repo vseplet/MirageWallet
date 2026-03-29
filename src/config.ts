@@ -143,6 +143,9 @@ export const S = {
   send: "Send",
   tonscan: "Tonscan \u2197",
   settings: "\u2699 Settings",
+  searchPlaceholder: "Search transactions...",
+  noMatches: "No matches",
+  hiddenBalance: "\u25CF\u25CF\u25CF\u25CF\u25CF TON",
 
   // Receive
   receiveTitle: "Receive TON",
