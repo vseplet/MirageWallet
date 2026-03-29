@@ -1,4 +1,4 @@
-# ArtWallet
+# MirageWallet
 
 Chrome extension (Manifest V3) with PixiJS canvas UI.
 
@@ -25,8 +25,8 @@ The built extension will be in the `dist/` directory.
 2. Enable **Developer mode** (toggle in the top-right corner)
 3. Click **Load unpacked**
 4. Select the `dist/` folder from this project
-5. Click the puzzle icon in Chrome toolbar and pin **ArtWallet**
-6. Click the ArtWallet icon -- a popup with a PixiJS button will appear
+5. Click the puzzle icon in Chrome toolbar and pin **MirageWallet**
+6. Click the MirageWallet icon -- a popup with a PixiJS button will appear
 
 ## Development
 
@@ -35,12 +35,12 @@ The built extension will be in the `dist/` directory.
 bun run dev
 ```
 
-After each rebuild, go to `chrome://extensions` and click the reload button on the ArtWallet card.
+After each rebuild, go to `chrome://extensions` and click the reload button on the MirageWallet card.
 
 ## Project Structure
 
 ```
-ArtWallet/
+MirageWallet/
   manifest.json      - Chrome extension manifest (MV3)
   popup.html         - Popup entry point
   src/

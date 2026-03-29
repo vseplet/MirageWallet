@@ -1,4 +1,4 @@
-# ArtWallet -- States & Transitions
+# MirageWallet -- States & Transitions
 
 ## State Machine Diagram
 

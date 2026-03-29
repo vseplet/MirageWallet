@@ -6,7 +6,7 @@ import { POPUP_WIDTH, POPUP_HEIGHT, PADDING } from "@/config";
 export function onboardingScreen(): Screen {
   const c = new Container();
 
-  const title = createTitle("ArtWallet");
+  const title = createTitle("MirageWallet");
   title.anchor.set(0.5);
   title.x = POPUP_WIDTH / 2;
   title.y = 120;

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ArtWallet",
+  "name": "MirageWallet",
   "version": "0.1.0",
   "description": "Crypto wallet experiment",
   "action": {

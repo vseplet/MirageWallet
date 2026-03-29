@@ -12,7 +12,7 @@ export function settingsScreen(): Screen {
   title.y = 16;
   c.addChild(title);
 
-  const version = createText("ArtWallet v0.1.0 \u2014 TON Testnet", {
+  const version = createText("MirageWallet v0.1.0 \u2014 TON Testnet", {
     fontSize: 12,
     color: COLORS.textMuted,
   });

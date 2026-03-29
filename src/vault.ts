@@ -3,7 +3,7 @@
  * Uses Web Crypto API: PBKDF2 -> AES-GCM.
  */
 
-const STORAGE_KEY = "artwallet_vault";
+const STORAGE_KEY = "miragewallet_vault";
 const SALT_LEN = 16;
 const IV_LEN = 12;
 const ITERATIONS = 100_000;
@@ -77,12 +77,12 @@ export function hasVault(): boolean {
 
 export function clearVault(): void {
   localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem("artwallet_whitelist");
+  localStorage.removeItem("miragewallet_whitelist");
 }
 
 // ── Address Whitelist ───────────────────────────────────
 
-const WHITELIST_KEY = "artwallet_whitelist";
+const WHITELIST_KEY = "miragewallet_whitelist";
 
 export function loadWhitelist(): string[] {
   try {

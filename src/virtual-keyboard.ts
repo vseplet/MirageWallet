@@ -85,18 +85,8 @@ function createKey(
   c.addChild(bg);
   c.addChild(text);
 
-  c.on("pointerover", () => {
-    if (hideLabel) text.text = label;
-  });
-  c.on("pointerout", () => {
-    if (hideLabel) text.text = "\u2022";
-    draw(color);
-  });
-  c.on("pointerdown", () => draw(COLORS.accentPress));
-  c.on("pointerup", () => {
-    draw(color);
-    onTap();
-  });
+  c.on("pointerout", () => draw(color));
+  c.on("pointerup", () => onTap());
 
   return c;
 }
@@ -154,6 +144,7 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
     value += ch;
     display.update(value);
     opts.onChange?.(value);
+    renderKeys();
   }
 
   function onBackspace() {
@@ -161,6 +152,7 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
     value = value.slice(0, -1);
     display.update(value);
     opts.onChange?.(value);
+    renderKeys();
   }
 
   function onDone() {

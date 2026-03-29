@@ -127,22 +127,6 @@ export function unlockScreen(): Screen {
   });
   c.addChild(kb.container);
 
-  // Reset link at the bottom
-  const resetText = createText("Reset Wallet", {
-    fontSize: 12,
-    color: COLORS.danger,
-    align: "center",
-  });
-  resetText.anchor.set(0.5);
-  resetText.x = POPUP_WIDTH / 2;
-  resetText.y = POPUP_HEIGHT - 16;
-  resetText.eventMode = "static";
-  resetText.cursor = "pointer";
-  resetText.on("pointerdown", () => {
-    wm.reset();
-    send({ type: "RESET" });
-  });
-  c.addChild(resetText);
 
   return { container: c };
 }
