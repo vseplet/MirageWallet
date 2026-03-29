@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { createButton, createTitle, createText, createPanel, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS, VK_GAP } from "@/config";
 import * as wm from "@/wallet-manager";
 import { shortenAddress, type TxInfo } from "@/ton";
 
@@ -39,16 +39,6 @@ export function dashboardScreen(): Screen {
     pressColor: 0x0f1a2e,
   };
 
-  const settingsBtn = createButton({
-    label: "\u2699 Settings",
-    width: smallBtnW,
-    ...smallBtnStyle,
-    onTap: () => send({ type: "SETTINGS" }),
-  });
-  settingsBtn.x = POPUP_WIDTH - PADDING - smallBtnW;
-  settingsBtn.y = 10;
-  c.addChild(settingsBtn);
-
   const explorerBtn = createButton({
     label: "Tonscan \u2197",
     width: smallBtnW,
@@ -57,9 +47,19 @@ export function dashboardScreen(): Screen {
       window.open(`${TON_TESTNET_EXPLORER}/address/${fullAddr}`, "_blank");
     },
   });
-  explorerBtn.x = POPUP_WIDTH - PADDING - smallBtnW;
-  explorerBtn.y = 38;
+  explorerBtn.x = POPUP_WIDTH - PADDING - smallBtnW * 2 - VK_GAP;
+  explorerBtn.y = 26;
   c.addChild(explorerBtn);
+
+  const settingsBtn = createButton({
+    label: "\u2699 Settings",
+    width: smallBtnW,
+    ...smallBtnStyle,
+    onTap: () => send({ type: "SETTINGS" }),
+  });
+  settingsBtn.x = POPUP_WIDTH - PADDING - smallBtnW;
+  settingsBtn.y = 26;
+  c.addChild(settingsBtn);
 
   // ── Balance ───────────────────────────────────────────
 
