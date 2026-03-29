@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { createButton, createTitle, createText, type Screen } from "@/ui";
+import { createButton, createTitle, createText, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
 import { POPUP_WIDTH, POPUP_HEIGHT, PADDING } from "@/config";
 
@@ -31,9 +31,7 @@ export function onboardingScreen(): Screen {
 
   const importBtn = createButton({
     label: "Import Wallet",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => send({ type: "IMPORT" }),
   });
   importBtn.x = PADDING;

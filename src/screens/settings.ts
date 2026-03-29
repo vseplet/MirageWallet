@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { createButton, createTitle, createText, type Screen } from "@/ui";
+import { createButton, createTitle, createText, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
 import { POPUP_HEIGHT, PADDING, COLORS } from "@/config";
 import * as wm from "@/wallet-manager";
@@ -36,9 +36,7 @@ export function settingsScreen(): Screen {
 
   const backBtn = createButton({
     label: "Back",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => send({ type: "BACK" }),
   });
   backBtn.x = PADDING;

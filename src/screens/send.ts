@@ -7,7 +7,7 @@ import {
   createHtmlInput,
   createSpinner,
   removeHtmlElements,
-  type Screen,
+  SECONDARY_BTN, type Screen,
 } from "@/ui";
 import { send as sendEvent, actor } from "@/state";
 import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE } from "@/config";
@@ -90,9 +90,7 @@ export function sendScreen(): Screen {
 
   const backBtn = createButton({
     label: "Cancel",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "BACK" }),
   });
   backBtn.x = PADDING;
@@ -184,9 +182,7 @@ export function sendWarningScreen(): Screen {
 
   const cancelBtn = createButton({
     label: "Cancel",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "CANCEL" }),
   });
   cancelBtn.x = PADDING;
@@ -246,9 +242,7 @@ export function sendConfirmScreen(): Screen {
 
   const cancelBtn = createButton({
     label: "Cancel",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "CANCEL" }),
   });
   cancelBtn.x = PADDING;
@@ -383,9 +377,7 @@ export function sendErrorScreen(): Screen {
 
   const cancelBtn = createButton({
     label: "Back to Wallet",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "CANCEL" }),
   });
   cancelBtn.x = PADDING;

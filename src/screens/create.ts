@@ -1,7 +1,7 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import { createButton, createTitle, createText, createPanel, type Screen } from "@/ui";
+import { createButton, createTitle, createText, createPanel, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, PADDING, COLORS, FONT_SIZE, FONT_FAMILY } from "@/config";
+import { POPUP_WIDTH, PADDING, COLORS, FONT_SIZE, FONT_FAMILY, MNEMONIC_WORD_COUNT } from "@/config";
 import { createWallet } from "@/ton";
 
 function shuffleIndices(len: number): number[] {
@@ -45,7 +45,7 @@ export function createScreen(): Screen {
   const confirmBtn = createButton({
     label: "I've saved it",
     onTap: () => {
-      if (mnemonic.length === 24) {
+      if (mnemonic.length === MNEMONIC_WORD_COUNT) {
         send({ type: "MNEMONIC_CONFIRMED", mnemonic });
       }
     },
@@ -57,9 +57,7 @@ export function createScreen(): Screen {
 
   const backBtn = createButton({
     label: "Back",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => send({ type: "BACK" }),
   });
   backBtn.x = PADDING;

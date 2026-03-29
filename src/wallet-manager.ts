@@ -10,6 +10,7 @@ import {
   type SendResult,
 } from "@/ton";
 import { encryptAndSave, decryptMnemonic, hasVault, clearVault } from "@/vault";
+import { DEFAULT_TX_LIMIT } from "@/config";
 
 // ── In-memory wallet state ──────────────────────────────
 
@@ -82,7 +83,7 @@ export function getCachedBalance(): string {
 
 // ── Transactions ────────────────────────────────────────
 
-export async function fetchTransactions(limit = 20): Promise<TxInfo[]> {
+export async function fetchTransactions(limit = DEFAULT_TX_LIMIT): Promise<TxInfo[]> {
   return getTransactions(getWallet().address, limit);
 }
 

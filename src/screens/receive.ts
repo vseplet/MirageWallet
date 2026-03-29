@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
-import { createButton, createTitle, createText, createPanel, removeHtmlElements, type Screen } from "@/ui";
+import { createButton, createTitle, createText, createPanel, removeHtmlElements, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, QR_CODE_SIZE, QR_CODE_MARGIN, FEEDBACK_TIMEOUT_MS } from "@/config";
 import * as wm from "@/wallet-manager";
 import QRCode from "qrcode";
 
@@ -58,7 +58,7 @@ export function receiveScreen(): Screen {
       try {
         await navigator.clipboard.writeText(fullAddr);
         feedbackText.text = "Copied!";
-        setTimeout(() => { feedbackText.text = ""; }, 2000);
+        setTimeout(() => { feedbackText.text = ""; }, FEEDBACK_TIMEOUT_MS);
       } catch {
         feedbackText.text = "Failed to copy";
       }
@@ -71,9 +71,7 @@ export function receiveScreen(): Screen {
   // Back
   const backBtn = createButton({
     label: "Back",
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
     onTap: () => send({ type: "BACK" }),
   });
   backBtn.x = PADDING;
@@ -87,15 +85,14 @@ export function receiveScreen(): Screen {
       try {
         // Render QR to a real canvas element overlaid on top
         qrCanvas = document.createElement("canvas");
-        const qrSize = 160;
         await QRCode.toCanvas(qrCanvas, fullAddr, {
-          width: qrSize,
-          margin: 2,
-          color: { dark: "#ffffff", light: "#1a1a2e" },
+          width: QR_CODE_SIZE,
+          margin: QR_CODE_MARGIN,
+          color: { dark: "#ffffff", light: `#${COLORS.bg.toString(16).padStart(6, "0")}` },
         });
         Object.assign(qrCanvas.style, {
           position: "absolute",
-          left: `${(POPUP_WIDTH - qrSize) / 2}px`,
+          left: `${(POPUP_WIDTH - QR_CODE_SIZE) / 2}px`,
           top: "80px",
           borderRadius: "8px",
         });

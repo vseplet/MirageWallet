@@ -3,7 +3,8 @@
  * Uses Web Crypto API: PBKDF2 -> AES-GCM.
  */
 
-const STORAGE_KEY = "miragewallet_vault";
+import { STORAGE_KEY_VAULT, STORAGE_KEY_WHITELIST } from "@/config";
+
 const SALT_LEN = 16;
 const IV_LEN = 12;
 const ITERATIONS = 100_000;
@@ -47,11 +48,11 @@ export async function encryptAndSave(mnemonic: string[], password: string): Prom
   combined.set(new Uint8Array(ciphertext), SALT_LEN + IV_LEN);
 
   const b64 = btoa(String.fromCharCode(...combined));
-  localStorage.setItem(STORAGE_KEY, b64);
+  localStorage.setItem(STORAGE_KEY_VAULT, b64);
 }
 
 export async function decryptMnemonic(password: string): Promise<string[]> {
-  const b64 = localStorage.getItem(STORAGE_KEY);
+  const b64 = localStorage.getItem(STORAGE_KEY_VAULT);
   if (!b64) throw new Error("No wallet found");
 
   const combined = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
@@ -72,17 +73,17 @@ export async function decryptMnemonic(password: string): Promise<string[]> {
 }
 
 export function hasVault(): boolean {
-  return localStorage.getItem(STORAGE_KEY) !== null;
+  return localStorage.getItem(STORAGE_KEY_VAULT) !== null;
 }
 
 export function clearVault(): void {
   localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem("miragewallet_whitelist");
+  localStorage.removeItem(STORAGE_KEY_WHITELIST);
 }
 
 // ── Address Whitelist ───────────────────────────────────
 
-const WHITELIST_KEY = "miragewallet_whitelist";
+const WHITELIST_KEY = STORAGE_KEY_WHITELIST;
 
 export function loadWhitelist(): string[] {
   try {

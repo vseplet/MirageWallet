@@ -10,7 +10,13 @@ import {
   INPUT_RADIUS,
   PADDING,
   PANEL_RADIUS,
-} from "./config";
+} from "@/config";
+
+export const SECONDARY_BTN = {
+  color: COLORS.secondary,
+  hoverColor: COLORS.secondaryHover,
+  pressColor: COLORS.secondaryPress,
+} as const;
 
 // ── Button ──────────────────────────────────────────────
 

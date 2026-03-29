@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { createTitle, createText, type Screen } from "@/ui";
 import { send, actor } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, MIN_PASSWORD_LENGTH } from "@/config";
 import { createVirtualKeyboard } from "@/virtual-keyboard";
 import * as wm from "@/wallet-manager";
 
@@ -35,8 +35,8 @@ export function setPasswordScreen(): Screen {
     y: 66,
     onSubmit: async (value) => {
       if (step === "password") {
-        if (value.length < 6) {
-          errorText.text = "Password must be at least 6 characters";
+        if (value.length < MIN_PASSWORD_LENGTH) {
+          errorText.text = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
           return;
         }
         firstPassword = value;

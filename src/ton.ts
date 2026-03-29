@@ -1,7 +1,16 @@
 import { TonClient, WalletContractV5R1 } from "@ton/ton";
 import { mnemonicNew, mnemonicToPrivateKey, mnemonicValidate } from "@ton/crypto";
 import { Address, toNano, fromNano, internal, SendMode } from "@ton/core";
-import { TON_TESTNET_ENDPOINT, TON_API_KEY } from "@/config";
+import {
+  TON_TESTNET_ENDPOINT,
+  TON_API_KEY,
+  ADDRESS_HIGHLIGHT_PREFIX,
+  ADDRESS_HIGHLIGHT_SUFFIX,
+  DEFAULT_TX_LIMIT,
+  RETRY_COUNT,
+  RETRY_BACKOFF_MS,
+  API_THROTTLE_DELAY_MS,
+} from "@/config";
 
 // ── Client (injectable for testing) ─────────────────────
 
@@ -89,7 +98,7 @@ export function isValidAddress(str: string): boolean {
   return parseAddress(str) !== null;
 }
 
-export function shortenAddress(str: string, prefixLen = 6, suffixLen = 4): string {
+export function shortenAddress(str: string, prefixLen = ADDRESS_HIGHLIGHT_PREFIX, suffixLen = ADDRESS_HIGHLIGHT_SUFFIX): string {
   if (str.length <= prefixLen + suffixLen + 3) return str;
   return `${str.slice(0, prefixLen)}...${str.slice(-suffixLen)}`;
 }
@@ -105,7 +114,7 @@ export async function getBalance(address: Address): Promise<string> {
 
 export async function getTransactions(
   address: Address,
-  limit = 20,
+  limit = DEFAULT_TX_LIMIT,
 ): Promise<TxInfo[]> {
   const txs = await client.getTransactions(address, { limit });
   const myAddr = address.toString();
@@ -177,7 +186,7 @@ export function searchTransactions(txs: TxInfo[], query: string): TxInfo[] {
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 3, backoff = 2000): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, retries = RETRY_COUNT, backoff = RETRY_BACKOFF_MS): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
@@ -205,7 +214,7 @@ export async function sendTon(
 
     const seqno = await withRetry(() => contract.getSeqno());
 
-    await delay(1500);
+    await delay(API_THROTTLE_DELAY_MS);
 
     await withRetry(() =>
       contract.sendTransfer({
@@ -299,13 +308,11 @@ function addressesEqual(a: string, b: string): boolean {
 }
 
 function addressesSimilar(a: string, b: string): boolean {
-  // Same prefix (6 chars) and suffix (4 chars) but different middle
   if (a.length !== b.length) return false;
-  if (a.length < 12) return false;
-  const prefixMatch = a.slice(0, 6) === b.slice(0, 6);
-  const suffixMatch = a.slice(-4) === b.slice(-4);
-  const notEqual = a !== b;
-  return prefixMatch && suffixMatch && notEqual;
+  if (a.length < ADDRESS_HIGHLIGHT_PREFIX + ADDRESS_HIGHLIGHT_SUFFIX) return false;
+  const prefixMatch = a.slice(0, ADDRESS_HIGHLIGHT_PREFIX) === b.slice(0, ADDRESS_HIGHLIGHT_PREFIX);
+  const suffixMatch = a.slice(-ADDRESS_HIGHLIGHT_SUFFIX) === b.slice(-ADDRESS_HIGHLIGHT_SUFFIX);
+  return prefixMatch && suffixMatch && a !== b;
 }
 
 // ── Send Validation ─────────────────────────────────────

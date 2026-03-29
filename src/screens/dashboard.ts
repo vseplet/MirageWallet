@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
-import { createButton, createTitle, createText, createPanel, type Screen } from "@/ui";
+import { createButton, createTitle, createText, createPanel, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS, VK_GAP } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS, VK_GAP, API_THROTTLE_DELAY_MS } from "@/config";
 import * as wm from "@/wallet-manager";
 import { shortenAddress, type TxInfo } from "@/ton";
 
@@ -34,9 +34,7 @@ export function dashboardScreen(): Screen {
   const smallBtnStyle = {
     height: smallBtnH,
     fontSize: 11,
-    color: 0x16213e,
-    hoverColor: 0x1a2744,
-    pressColor: 0x0f1a2e,
+    ...SECONDARY_BTN,
   };
 
   const explorerBtn = createButton({
@@ -182,7 +180,7 @@ export function dashboardScreen(): Screen {
       // Keep previous
     }
 
-    await delay(1500);
+    await delay(API_THROTTLE_DELAY_MS);
 
     try {
       const txs = await wm.fetchTransactions();
