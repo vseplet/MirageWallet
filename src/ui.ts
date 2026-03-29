@@ -95,12 +95,13 @@ export function createTitle(str: string, fontSize: number = FONT_SIZE.title): Te
 
 export function createText(
   str: string,
-  opts?: { color?: number; fontSize?: number; maxWidth?: number; align?: "left" | "center" },
+  opts?: { color?: number; fontSize?: number; maxWidth?: number; align?: "left" | "center"; breakWords?: boolean },
 ): Text {
   return new Text({
     text: str,
     style: new TextStyle({
       fontFamily: FONT_FAMILY,
+      breakWords: opts?.breakWords ?? false,
       fontSize: opts?.fontSize ?? FONT_SIZE.body,
       fill: opts?.color ?? COLORS.textDim,
       wordWrap: true,

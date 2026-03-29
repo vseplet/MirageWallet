@@ -214,12 +214,13 @@ export function sendConfirmScreen(): Screen {
   c.addChild(toLabel);
 
   const toAddr = createText(ctx.sendTo || "...", {
-    fontSize: 11,
+    fontSize: FONT_SIZE.small,
     color: COLORS.text,
-    maxWidth: POPUP_WIDTH - PADDING * 4,
+    maxWidth: POPUP_WIDTH - PADDING * 4 - 24,
+    breakWords: true,
   });
   toAddr.x = PADDING + 12;
-  toAddr.y = 95;
+  toAddr.y = 92;
   c.addChild(toAddr);
 
   const amtLabel = createText(S.amount, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });

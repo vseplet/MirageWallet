@@ -10,6 +10,7 @@ import {
   VK_GAP,
   VK_DISPLAY_HEIGHT,
   VK_MAX_LENGTH,
+  VK_DISPLAY_DOTS,
   VK_KEY_RADIUS,
   VK_DISPLAY_RADIUS,
   S,
@@ -112,40 +113,63 @@ function createDisplay(y: number): { container: Container; update: (val: string)
   container.x = PADDING;
   container.y = y;
 
+  // Pre-fill with VK_MAX_LENGTH dots — length never changes
+  const charSlots: { text: Text; container: Container }[] = [];
+  const dot = "\u25CF";
+  const charW = Math.floor((GRID_W - 24) / VK_DISPLAY_DOTS);
+
+  for (let i = 0; i < VK_DISPLAY_DOTS; i++) {
+    const cc = new Container();
+    cc.eventMode = "static";
+    cc.cursor = "default";
+    cc.x = i * charW;
+
+    const ct = new Text({
+      text: dot,
+      style: new TextStyle({
+        fontFamily: FONT_FAMILY,
+        fontSize: 14,
+        fill: COLORS.textMuted,
+      }),
+    });
+    ct.anchor.set(0, 0.5);
+    ct.y = VK_DISPLAY_HEIGHT / 2;
+    cc.addChild(ct);
+
+    const hit = new Graphics();
+    hit.rect(0, 0, charW, VK_DISPLAY_HEIGHT);
+    hit.fill({ color: 0x000000, alpha: 0.001 });
+    cc.addChild(hit);
+
+    charSlots.push({ text: ct, container: cc });
+    charsContainer.addChild(cc);
+  }
+
+  let currentValue = "";
+
   return {
     container,
     update: (val: string) => {
-      while (charsContainer.children.length) {
-        charsContainer.removeChildAt(0);
-      }
-      for (let i = 0; i < val.length; i++) {
-        const ch = val[i]!;
-        const cc = new Container();
-        cc.eventMode = "static";
-        cc.cursor = "default";
+      currentValue = val;
+      // Remove old hover listeners and re-attach with updated value
+      for (let i = 0; i < VK_DISPLAY_DOTS; i++) {
+        const slot = charSlots[i]!;
+        slot.text.text = dot;
+        slot.text.style.fill = COLORS.textMuted;
+        slot.container.removeAllListeners();
+        slot.container.eventMode = "static";
 
-        const ct = new Text({
-          text: "\u25CF",
-          style: new TextStyle({
-            fontFamily: FONT_FAMILY,
-            fontSize: 20,
-            fill: "#ffffff",
-          }),
+        const idx = i;
+        slot.container.on("pointerover", () => {
+          if (idx < currentValue.length) {
+            slot.text.text = currentValue[idx]!;
+            slot.text.style.fill = COLORS.text;
+          }
         });
-        ct.anchor.set(0, 0.5);
-        ct.y = VK_DISPLAY_HEIGHT / 2;
-        cc.addChild(ct);
-
-        const hit = new Graphics();
-        hit.rect(0, 0, 16, VK_DISPLAY_HEIGHT);
-        hit.fill({ color: 0x000000, alpha: 0.001 });
-        cc.addChild(hit);
-
-        cc.on("pointerover", () => { ct.text = ch; });
-        cc.on("pointerout", () => { ct.text = "\u25CF"; });
-
-        cc.x = i * 16;
-        charsContainer.addChild(cc);
+        slot.container.on("pointerout", () => {
+          slot.text.text = dot;
+          slot.text.style.fill = COLORS.textMuted;
+        });
       }
     },
   };
@@ -163,12 +187,16 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
 
   const gridY = opts.y + VK_DISPLAY_HEIGHT + VK_GAP * 2;
 
+  function maybeShuffle() {
+    if (Math.random() < 0.5) renderKeys();
+  }
+
   function onChar(ch: string) {
     if (value.length >= VK_MAX_LENGTH) return;
     value += ch;
     display.update(value);
     opts.onChange?.(value);
-    renderKeys();
+    maybeShuffle();
   }
 
   function onBackspace() {
@@ -176,7 +204,7 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
     value = value.slice(0, -1);
     display.update(value);
     opts.onChange?.(value);
-    renderKeys();
+    maybeShuffle();
   }
 
   function onDone() {

@@ -82,6 +82,7 @@ export const VK_KEY_HEIGHT = 46;
 export const VK_GAP = 4;
 export const VK_DISPLAY_HEIGHT = 44;
 export const VK_MAX_LENGTH = 32;
+export const VK_DISPLAY_DOTS = 16;
 export const VK_KEY_RADIUS = 8;
 export const VK_DISPLAY_RADIUS = 10;
 
