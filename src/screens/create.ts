@@ -1,7 +1,7 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import { createButton, createTitle, createText, createPanel, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, PADDING, COLORS, FONT_SIZE, FONT_FAMILY, MNEMONIC_WORD_COUNT } from "@/config";
+import { POPUP_WIDTH, PADDING, COLORS, FONT_SIZE, FONT_FAMILY, MNEMONIC_WORD_COUNT, S } from "@/config";
 import { createWallet } from "@/ton";
 
 function shuffleIndices(len: number): number[] {
@@ -16,12 +16,12 @@ function shuffleIndices(len: number): number[] {
 export function createScreen(): Screen {
   const c = new Container();
 
-  const title = createTitle("Your Seed Phrase");
+  const title = createTitle(S.seedTitle);
   title.x = PADDING;
   title.y = 16;
   c.addChild(title);
 
-  const warn = createText("Hover over a word to reveal it. Write them down in order.", {
+  const warn = createText(S.seedHint, {
     color: COLORS.warning,
     fontSize: 11,
   });
@@ -34,7 +34,7 @@ export function createScreen(): Screen {
   panel.y = 68;
   c.addChild(panel);
 
-  const loading = createText("Generating wallet...", { color: COLORS.textMuted, align: "center" });
+  const loading = createText(S.generating, { color: COLORS.textMuted, align: "center" });
   loading.anchor.set(0.5);
   loading.x = POPUP_WIDTH / 2;
   loading.y = 200;
@@ -43,7 +43,7 @@ export function createScreen(): Screen {
   let mnemonic: string[] = [];
 
   const confirmBtn = createButton({
-    label: "I've saved it",
+    label: S.seedConfirm,
     onTap: () => {
       if (mnemonic.length === MNEMONIC_WORD_COUNT) {
         send({ type: "MNEMONIC_CONFIRMED", mnemonic });
@@ -56,7 +56,7 @@ export function createScreen(): Screen {
   c.addChild(confirmBtn);
 
   const backBtn = createButton({
-    label: "Back",
+    label: S.back,
     ...SECONDARY_BTN,
     onTap: () => send({ type: "BACK" }),
   });

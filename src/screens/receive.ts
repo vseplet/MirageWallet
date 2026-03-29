@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { createButton, createTitle, createText, createPanel, removeHtmlElements, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, QR_CODE_SIZE, QR_CODE_MARGIN, FEEDBACK_TIMEOUT_MS } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, QR_CODE_SIZE, QR_CODE_MARGIN, FEEDBACK_TIMEOUT_MS, S } from "@/config";
 import * as wm from "@/wallet-manager";
 import QRCode from "qrcode";
 
@@ -14,12 +14,12 @@ export function receiveScreen(): Screen {
     fullAddr = wm.getAddress();
   } catch { /* locked */ }
 
-  const title = createTitle("Receive TON");
+  const title = createTitle(S.receiveTitle);
   title.x = PADDING;
   title.y = 16;
   c.addChild(title);
 
-  const hint = createText("Share this address to receive TON on testnet.", { fontSize: 13 });
+  const hint = createText(S.receiveHint, { fontSize: 13 });
   hint.x = PADDING;
   hint.y = 50;
   c.addChild(hint);
@@ -53,14 +53,14 @@ export function receiveScreen(): Screen {
 
   // Copy button
   const copyBtn = createButton({
-    label: "Copy Address",
+    label: S.copyAddress,
     onTap: async () => {
       try {
         await navigator.clipboard.writeText(fullAddr);
-        feedbackText.text = "Copied!";
+        feedbackText.text = S.copied;
         setTimeout(() => { feedbackText.text = ""; }, FEEDBACK_TIMEOUT_MS);
       } catch {
-        feedbackText.text = "Failed to copy";
+        feedbackText.text = S.copyFailed;
       }
     },
   });
@@ -70,7 +70,7 @@ export function receiveScreen(): Screen {
 
   // Back
   const backBtn = createButton({
-    label: "Back",
+    label: S.back,
     ...SECONDARY_BTN,
     onTap: () => send({ type: "BACK" }),
   });

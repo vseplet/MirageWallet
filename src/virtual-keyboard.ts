@@ -12,6 +12,7 @@ import {
   VK_MAX_LENGTH,
   VK_KEY_RADIUS,
   VK_DISPLAY_RADIUS,
+  S,
 } from "@/config";
 
 // ── Types ───────────────────────────────────────────────
@@ -103,19 +104,10 @@ function createDisplay(y: number): { container: Container; update: (val: string)
   bg.stroke({ width: 1, color: COLORS.inputBorder });
   container.addChild(bg);
 
-  const text = new Text({
-    text: "",
-    style: new TextStyle({
-      fontFamily: FONT_FAMILY,
-      fontSize: 20,
-      fill: "#ffffff",
-      letterSpacing: 3,
-    }),
-  });
-  text.anchor.set(0, 0.5);
-  text.x = 14;
-  text.y = VK_DISPLAY_HEIGHT / 2;
-  container.addChild(text);
+  const charsContainer = new Container();
+  charsContainer.x = 12;
+  charsContainer.y = 0;
+  container.addChild(charsContainer);
 
   container.x = PADDING;
   container.y = y;
@@ -123,7 +115,38 @@ function createDisplay(y: number): { container: Container; update: (val: string)
   return {
     container,
     update: (val: string) => {
-      text.text = "\u25CF".repeat(val.length);
+      while (charsContainer.children.length) {
+        charsContainer.removeChildAt(0);
+      }
+      for (let i = 0; i < val.length; i++) {
+        const ch = val[i]!;
+        const cc = new Container();
+        cc.eventMode = "static";
+        cc.cursor = "default";
+
+        const ct = new Text({
+          text: "\u25CF",
+          style: new TextStyle({
+            fontFamily: FONT_FAMILY,
+            fontSize: 20,
+            fill: "#ffffff",
+          }),
+        });
+        ct.anchor.set(0, 0.5);
+        ct.y = VK_DISPLAY_HEIGHT / 2;
+        cc.addChild(ct);
+
+        const hit = new Graphics();
+        hit.rect(0, 0, 16, VK_DISPLAY_HEIGHT);
+        hit.fill({ color: 0x000000, alpha: 0.001 });
+        cc.addChild(hit);
+
+        cc.on("pointerover", () => { ct.text = ch; });
+        cc.on("pointerout", () => { ct.text = "\u25CF"; });
+
+        cc.x = i * 16;
+        charsContainer.addChild(cc);
+      }
     },
   };
 }
@@ -196,12 +219,12 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
   const bottomBtnY = POPUP_HEIGHT - PADDING - VK_KEY_HEIGHT;
   const halfW = Math.floor((GRID_W - VK_GAP) / 2);
 
-  const backspace = createKey("\u2190 Del", halfW, VK_KEY_HEIGHT, onBackspace, COLORS.danger);
+  const backspace = createKey(S.del, halfW, VK_KEY_HEIGHT, onBackspace, COLORS.danger);
   backspace.x = PADDING;
   backspace.y = bottomBtnY;
   container.addChild(backspace);
 
-  const doneBtn = createKey("Done", halfW, VK_KEY_HEIGHT, onDone, COLORS.accent);
+  const doneBtn = createKey(S.vkDone, halfW, VK_KEY_HEIGHT, onDone, COLORS.accent);
   doneBtn.x = PADDING + halfW + VK_GAP;
   doneBtn.y = bottomBtnY;
   container.addChild(doneBtn);

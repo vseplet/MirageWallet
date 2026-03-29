@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { createTitle, createText, type Screen } from "@/ui";
 import { send, actor } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, MIN_PASSWORD_LENGTH } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, MIN_PASSWORD_LENGTH, S } from "@/config";
 import { createVirtualKeyboard } from "@/virtual-keyboard";
 import * as wm from "@/wallet-manager";
 
@@ -12,12 +12,12 @@ export function setPasswordScreen(): Screen {
   let step: "password" | "confirm" = "password";
   let firstPassword = "";
 
-  const title = createTitle("Set Password");
+  const title = createTitle(S.setPasswordTitle);
   title.x = PADDING;
   title.y = 14;
   c.addChild(title);
 
-  const stepLabel = createText("Step 1: Enter password (min 6 chars)", {
+  const stepLabel = createText(S.step1, {
     fontSize: 13,
     color: COLORS.accent,
   });
@@ -36,28 +36,28 @@ export function setPasswordScreen(): Screen {
     onSubmit: async (value) => {
       if (step === "password") {
         if (value.length < MIN_PASSWORD_LENGTH) {
-          errorText.text = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
+          errorText.text = S.passwordTooShort;
           return;
         }
         firstPassword = value;
         step = "confirm";
-        stepLabel.text = "Step 2: Confirm password";
+        stepLabel.text = S.step2;
         errorText.text = "";
         kb.clear();
         kb.shuffle();
       } else {
         if (value !== firstPassword) {
-          errorText.text = "Passwords do not match. Try again.";
+          errorText.text = S.passwordsMismatch;
           step = "password";
           firstPassword = "";
-          stepLabel.text = "Step 1: Enter password (min 6 chars)";
+          stepLabel.text = S.step1;
           kb.clear();
           kb.shuffle();
           return;
         }
 
         errorText.text = "";
-        stepLabel.text = "Creating wallet...";
+        stepLabel.text = S.creatingWallet;
 
         try {
           const ctx = actor.getSnapshot().context;
@@ -68,7 +68,7 @@ export function setPasswordScreen(): Screen {
           }
           send({ type: "PASSWORD_SET" });
         } catch (err) {
-          stepLabel.text = "Step 1: Enter password (min 6 chars)";
+          stepLabel.text = S.step1;
           errorText.text = `Error: ${err instanceof Error ? err.message : err}`;
         }
       }
@@ -84,12 +84,12 @@ export function setPasswordScreen(): Screen {
 export function unlockScreen(): Screen {
   const c = new Container();
 
-  const title = createTitle("Unlock Wallet");
+  const title = createTitle(S.unlockTitle);
   title.x = PADDING;
   title.y = 14;
   c.addChild(title);
 
-  const hint = createText("Enter your password", {
+  const hint = createText(S.enterPassword, {
     fontSize: 13,
     color: COLORS.textDim,
   });
@@ -107,19 +107,19 @@ export function unlockScreen(): Screen {
     y: 66,
     onSubmit: async (value) => {
       if (!value) {
-        errorText.text = "Enter your password";
+        errorText.text = S.enterPassword;
         return;
       }
 
       errorText.text = "";
-      hint.text = "Decrypting...";
+      hint.text = S.decrypting;
 
       try {
         await wm.unlock(value);
         send({ type: "UNLOCK" });
       } catch {
-        hint.text = "Enter your password";
-        errorText.text = "Wrong password";
+        hint.text = S.enterPassword;
+        errorText.text = S.wrongPassword;
         kb.clear();
         kb.shuffle();
       }

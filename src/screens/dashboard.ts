@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { createButton, createTitle, createText, createPanel, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS, VK_GAP, API_THROTTLE_DELAY_MS } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, TON_TESTNET_EXPLORER, POLL_INTERVAL_MS, VK_GAP, API_THROTTLE_DELAY_MS, S } from "@/config";
 import * as wm from "@/wallet-manager";
 import { shortenAddress, type TxInfo } from "@/ton";
 
@@ -16,7 +16,7 @@ export function dashboardScreen(): Screen {
 
   // ── Top row: address + buttons ────────────────────────
 
-  const addrLabel = createText("Your address", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
+  const addrLabel = createText(S.yourAddress, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   addrLabel.x = PADDING;
   addrLabel.y = 12;
   c.addChild(addrLabel);
@@ -38,7 +38,7 @@ export function dashboardScreen(): Screen {
   };
 
   const explorerBtn = createButton({
-    label: "Tonscan \u2197",
+    label: S.tonscan,
     width: smallBtnW,
     ...smallBtnStyle,
     onTap: () => {
@@ -50,7 +50,7 @@ export function dashboardScreen(): Screen {
   c.addChild(explorerBtn);
 
   const settingsBtn = createButton({
-    label: "\u2699 Settings",
+    label: S.settings,
     width: smallBtnW,
     ...smallBtnStyle,
     onTap: () => send({ type: "SETTINGS" }),
@@ -61,7 +61,7 @@ export function dashboardScreen(): Screen {
 
   // ── Balance ───────────────────────────────────────────
 
-  const balance = createTitle("Loading...", 28);
+  const balance = createTitle(S.loading, 28);
   balance.anchor.set(0.5);
   balance.x = POPUP_WIDTH / 2;
   balance.y = 80;
@@ -72,7 +72,7 @@ export function dashboardScreen(): Screen {
   const btnW = (POPUP_WIDTH - PADDING * 3) / 2;
 
   const receiveBtn = createButton({
-    label: "Receive",
+    label: S.receive,
     width: btnW,
     onTap: () => send({ type: "RECEIVE" }),
   });
@@ -81,7 +81,7 @@ export function dashboardScreen(): Screen {
   c.addChild(receiveBtn);
 
   const sendBtn = createButton({
-    label: "Send",
+    label: S.send,
     width: btnW,
     onTap: () => send({ type: "SEND" }),
   });
@@ -95,7 +95,7 @@ export function dashboardScreen(): Screen {
   const txPanelY = 186;
   const txPanelH = POPUP_HEIGHT - txPanelY - PADDING;
 
-  const txTitle = createText("Transactions", {
+  const txTitle = createText(S.transactions, {
     fontSize: FONT_SIZE.subtitle,
     color: COLORS.text,
   });
@@ -118,7 +118,7 @@ export function dashboardScreen(): Screen {
   txListContainer.y = txPanelY + 8;
   c.addChild(txListContainer);
 
-  const noTx = createText("Loading transactions...", {
+  const noTx = createText(S.loadingTx, {
     align: "center",
     color: COLORS.textMuted,
   });
@@ -135,7 +135,7 @@ export function dashboardScreen(): Screen {
     }
 
     if (txs.length === 0) {
-      noTx.text = "No transactions yet";
+      noTx.text = S.noTransactions;
       noTx.visible = true;
       return;
     }

@@ -9,6 +9,7 @@ import {
   MNEMONIC_WORD_COUNT,
   VK_GAP,
   VK_KEY_RADIUS,
+  S,
 } from "@/config";
 
 // ── Types ───────────────────────────────────────────────
@@ -345,12 +346,12 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
   const bottomY = POPUP_HEIGHT - 100;
   const thirdW = Math.floor((GRID_W - VK_GAP * 2) / 3);
 
-  const backspace = createKey("\u2190 Del", thirdW, 38, onBackspace, COLORS.danger, 12);
+  const backspace = createKey(S.del, thirdW, 38, onBackspace, COLORS.danger, 12);
   backspace.x = PADDING;
   backspace.y = bottomY;
   container.addChild(backspace);
 
-  const confirmWord = createKey("Confirm", thirdW, 38, () => {
+  const confirmWord = createKey(S.confirm, thirdW, 38, () => {
     if (currentInput.length < 2) return;
     // Check if exact match in wordlist
     if (WORDLIST.includes(currentInput.toLowerCase())) {
@@ -361,7 +362,7 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
   confirmWord.y = bottomY;
   container.addChild(confirmWord);
 
-  const back = createKey("Cancel", thirdW, 38, () => opts.onBack(), COLORS.panel, 12);
+  const back = createKey(S.cancel, thirdW, 38, () => opts.onBack(), COLORS.panel, 12);
   back.x = PADDING + (thirdW + VK_GAP) * 2;
   back.y = bottomY;
   container.addChild(back);

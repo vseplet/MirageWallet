@@ -1,18 +1,18 @@
 import { Container } from "pixi.js";
 import { createButton, createTitle, createText, SECONDARY_BTN, type Screen } from "@/ui";
 import { send } from "@/state";
-import { POPUP_HEIGHT, PADDING, COLORS } from "@/config";
+import { POPUP_HEIGHT, PADDING, COLORS, S, APP_NAME, APP_VERSION } from "@/config";
 import * as wm from "@/wallet-manager";
 
 export function settingsScreen(): Screen {
   const c = new Container();
 
-  const title = createTitle("Settings");
+  const title = createTitle(S.settingsTitle);
   title.x = PADDING;
   title.y = 16;
   c.addChild(title);
 
-  const version = createText("MirageWallet v0.1.0 \u2014 TON Testnet", {
+  const version = createText(`${APP_NAME} v${APP_VERSION} \u2014 TON Testnet`, {
     fontSize: 12,
     color: COLORS.textMuted,
   });
@@ -21,7 +21,7 @@ export function settingsScreen(): Screen {
   c.addChild(version);
 
   const resetBtn = createButton({
-    label: "Reset Wallet",
+    label: S.resetWallet,
     color: COLORS.danger,
     hoverColor: COLORS.dangerHover,
     pressColor: COLORS.dangerPress,
@@ -35,7 +35,7 @@ export function settingsScreen(): Screen {
   c.addChild(resetBtn);
 
   const backBtn = createButton({
-    label: "Back",
+    label: S.back,
     ...SECONDARY_BTN,
     onTap: () => send({ type: "BACK" }),
   });

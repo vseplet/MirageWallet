@@ -97,3 +97,105 @@ export const QR_CODE_MARGIN = 2;
 // ── Storage Keys ────────────────────────────────────────
 export const STORAGE_KEY_VAULT = "miragewallet_vault";
 export const STORAGE_KEY_WHITELIST = "miragewallet_whitelist";
+
+// ── App Info ────────────────────────────────────────────
+export const APP_NAME = "MirageWallet";
+export const APP_VERSION = "0.1.0";
+
+// ── Strings ─────────────────────────────────────────────
+export const S = {
+  // Onboarding
+  subtitle: "Self-custodial TON wallet",
+  createWallet: "Create Wallet",
+  importWallet: "Import Wallet",
+
+  // Create
+  seedTitle: "Your Seed Phrase",
+  seedHint: "Hover over a word to reveal it. Write them down in order.",
+  seedConfirm: "I've saved it",
+  generating: "Generating wallet...",
+
+  // Import
+  importTitle: "Import Wallet",
+  importHint: "Enter seed phrase word by word.",
+  validating: "Validating...",
+  invalidMnemonic: "Invalid mnemonic. Please try again.",
+
+  // Password
+  setPasswordTitle: "Set Password",
+  unlockTitle: "Unlock Wallet",
+  enterPassword: "Enter your password",
+  step1: `Step 1: Enter password (min ${MIN_PASSWORD_LENGTH} chars)`,
+  step2: "Step 2: Confirm password",
+  passwordTooShort: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+  passwordsMismatch: "Passwords do not match. Try again.",
+  creatingWallet: "Creating wallet...",
+  decrypting: "Decrypting...",
+  wrongPassword: "Wrong password",
+
+  // Dashboard
+  yourAddress: "Your address",
+  loading: "Loading...",
+  loadingTx: "Loading transactions...",
+  noTransactions: "No transactions yet",
+  transactions: "Transactions",
+  receive: "Receive",
+  send: "Send",
+  tonscan: "Tonscan \u2197",
+  settings: "\u2699 Settings",
+
+  // Receive
+  receiveTitle: "Receive TON",
+  receiveHint: "Share this address to receive TON on testnet.",
+  copyAddress: "Copy Address",
+  copied: "Copied!",
+  copyFailed: "Failed to copy",
+
+  // Send
+  sendTitle: "Send TON",
+  recipientAddress: "Recipient address",
+  amountTon: "Amount (TON)",
+  balanceLoading: "Balance: loading...",
+  review: "Review",
+  cancel: "Cancel",
+  addrPlaceholder: "EQ... or UQ...",
+  amountPlaceholder: "0.00",
+  invalidInput: "Invalid input",
+
+  // Send Warning
+  warningTitle: "Warning",
+  riskDetected: "Potential risk detected.",
+  sendAnyway: "Send Anyway",
+
+  // Send Confirm
+  confirmTitle: "Confirm Transaction",
+  to: "To:",
+  amount: "Amount:",
+  confirmSend: "Confirm & Send",
+
+  // Send Pending
+  sending: "Sending...",
+  waitingNetwork: "Waiting for network...",
+  txFailed: "Transaction failed",
+
+  // Send Success
+  txSent: "Transaction Sent!",
+  txSentHint: "It may take a few seconds to appear in history.",
+  done: "Done",
+
+  // Send Error
+  txFailedTitle: "Transaction Failed",
+  unknownError: "Unknown error",
+  retry: "Retry",
+  backToWallet: "Back to Wallet",
+
+  // Settings
+  settingsTitle: "Settings",
+  resetWallet: "Reset Wallet",
+  back: "Back",
+
+  // Virtual Keyboard
+  del: "\u2190 Del",
+  vkDone: "Done",
+  confirm: "Confirm",
+} as const;

@@ -10,7 +10,7 @@ import {
   SECONDARY_BTN, type Screen,
 } from "@/ui";
 import { send as sendEvent, actor } from "@/state";
-import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE } from "@/config";
+import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE, S } from "@/config";
 import { validateSend, checkAddressGuard } from "@/ton";
 import * as wm from "@/wallet-manager";
 import { loadWhitelist, addToWhitelist } from "@/vault";
@@ -24,22 +24,22 @@ export function sendScreen(): Screen {
   let pastedValue = "";
   let currentBalance = "0";
 
-  const title = createTitle("Send TON");
+  const title = createTitle(S.sendTitle);
   title.x = PADDING;
   title.y = 16;
   c.addChild(title);
 
-  const addrLabel = createText("Recipient address", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
+  const addrLabel = createText(S.recipientAddress, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   addrLabel.x = PADDING;
   addrLabel.y = 54;
   c.addChild(addrLabel);
 
-  const amountLabel = createText("Amount (TON)", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
+  const amountLabel = createText(S.amountTon, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   amountLabel.x = PADDING;
   amountLabel.y = 120;
   c.addChild(amountLabel);
 
-  const balanceHint = createText("Balance: loading...", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
+  const balanceHint = createText(S.balanceLoading, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   balanceHint.x = PADDING;
   balanceHint.y = 186;
   c.addChild(balanceHint);
@@ -50,14 +50,14 @@ export function sendScreen(): Screen {
   c.addChild(errorText);
 
   const submitBtn = createButton({
-    label: "Review",
+    label: S.review,
     onTap: () => {
       const to = addrInput?.value.trim() ?? "";
       const amount = amountInput?.value.trim() ?? "";
 
       const validation = validateSend({ address: to, amount, balance: currentBalance });
       if (!validation.valid) {
-        errorText.text = validation.error ?? "Invalid input";
+        errorText.text = validation.error ?? S.invalidInput;
         return;
       }
 
@@ -89,7 +89,7 @@ export function sendScreen(): Screen {
   c.addChild(submitBtn);
 
   const backBtn = createButton({
-    label: "Cancel",
+    label: S.cancel,
     ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "BACK" }),
   });
@@ -103,12 +103,12 @@ export function sendScreen(): Screen {
       addrInput = createHtmlInput({
         x: PADDING, y: 72,
         width: POPUP_WIDTH - PADDING * 2,
-        placeholder: "EQ... or UQ...",
+        placeholder: S.addrPlaceholder,
       });
       amountInput = createHtmlInput({
         x: PADDING, y: 138,
         width: POPUP_WIDTH - PADDING * 2,
-        placeholder: "0.00",
+        placeholder: S.amountPlaceholder,
       });
 
       // Track paste for clipboard hijack detection
@@ -140,7 +140,7 @@ export function sendWarningScreen(): Screen {
   const c = new Container();
   const ctx = actor.getSnapshot().context;
 
-  const title = createTitle("Warning");
+  const title = createTitle(S.warningTitle);
   title.x = PADDING;
   title.y = 16;
   c.addChild(title);
@@ -157,7 +157,7 @@ export function sendWarningScreen(): Screen {
   c.addChild(panel);
 
   const warnings = ctx.sendWarnings.join("\n\n");
-  const warnText = createText(warnings || "Potential risk detected.", {
+  const warnText = createText(warnings || S.riskDetected, {
     color: COLORS.warning,
     fontSize: 13,
     maxWidth: POPUP_WIDTH - PADDING * 4,
@@ -167,7 +167,7 @@ export function sendWarningScreen(): Screen {
   c.addChild(warnText);
 
   const anywayBtn = createButton({
-    label: "Send Anyway",
+    label: S.sendAnyway,
     color: COLORS.danger,
     hoverColor: COLORS.dangerHover,
     pressColor: COLORS.dangerPress,
@@ -181,7 +181,7 @@ export function sendWarningScreen(): Screen {
   c.addChild(anywayBtn);
 
   const cancelBtn = createButton({
-    label: "Cancel",
+    label: S.cancel,
     ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "CANCEL" }),
   });
@@ -198,7 +198,7 @@ export function sendConfirmScreen(): Screen {
   const c = new Container();
   const ctx = actor.getSnapshot().context;
 
-  const title = createTitle("Confirm Transaction");
+  const title = createTitle(S.confirmTitle);
   title.x = PADDING;
   title.y = 16;
   c.addChild(title);
@@ -208,7 +208,7 @@ export function sendConfirmScreen(): Screen {
   panel.y = 60;
   c.addChild(panel);
 
-  const toLabel = createText("To:", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
+  const toLabel = createText(S.to, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   toLabel.x = PADDING + 12;
   toLabel.y = 75;
   c.addChild(toLabel);
@@ -222,7 +222,7 @@ export function sendConfirmScreen(): Screen {
   toAddr.y = 95;
   c.addChild(toAddr);
 
-  const amtLabel = createText("Amount:", { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
+  const amtLabel = createText(S.amount, { fontSize: FONT_SIZE.small, color: COLORS.textMuted });
   amtLabel.x = PADDING + 12;
   amtLabel.y = 140;
   c.addChild(amtLabel);
@@ -233,7 +233,7 @@ export function sendConfirmScreen(): Screen {
   c.addChild(amtVal);
 
   const confirmBtn = createButton({
-    label: "Confirm & Send",
+    label: S.confirmSend,
     onTap: () => sendEvent({ type: "CONFIRM" }),
   });
   confirmBtn.x = PADDING;
@@ -241,7 +241,7 @@ export function sendConfirmScreen(): Screen {
   c.addChild(confirmBtn);
 
   const cancelBtn = createButton({
-    label: "Cancel",
+    label: S.cancel,
     ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "CANCEL" }),
   });
@@ -258,7 +258,7 @@ export function sendPendingScreen(): Screen {
   const c = new Container();
   const ctx = actor.getSnapshot().context;
 
-  const title = createTitle("Sending...");
+  const title = createTitle(S.sending);
   title.anchor.set(0.5);
   title.x = POPUP_WIDTH / 2;
   title.y = 180;
@@ -269,7 +269,7 @@ export function sendPendingScreen(): Screen {
   spinner.y = 250;
   c.addChild(spinner);
 
-  const hint = createText("Waiting for network...", {
+  const hint = createText(S.waitingNetwork, {
     align: "center",
     color: COLORS.textMuted,
     fontSize: FONT_SIZE.small,
@@ -289,7 +289,7 @@ export function sendPendingScreen(): Screen {
           addToWhitelist(ctx.sendTo);
           sendEvent({ type: "TX_SUCCESS", txHash: "" });
         } else {
-          sendEvent({ type: "TX_ERROR", error: result.error ?? "Transaction failed" });
+          sendEvent({ type: "TX_ERROR", error: result.error ?? S.txFailed });
         }
       } catch (err) {
         sendEvent({
@@ -312,13 +312,13 @@ export function sendSuccessScreen(): Screen {
   check.y = 140;
   c.addChild(check);
 
-  const title = createTitle("Transaction Sent!");
+  const title = createTitle(S.txSent);
   title.anchor.set(0.5);
   title.x = POPUP_WIDTH / 2;
   title.y = 200;
   c.addChild(title);
 
-  const sub = createText("It may take a few seconds to appear in history.", {
+  const sub = createText(S.txSentHint, {
     align: "center",
     color: COLORS.textMuted,
     fontSize: FONT_SIZE.small,
@@ -329,7 +329,7 @@ export function sendSuccessScreen(): Screen {
   c.addChild(sub);
 
   const doneBtn = createButton({
-    label: "Done",
+    label: S.done,
     onTap: () => sendEvent({ type: "DONE" }),
   });
   doneBtn.x = PADDING;
@@ -351,13 +351,13 @@ export function sendErrorScreen(): Screen {
   icon.y = 120;
   c.addChild(icon);
 
-  const title = createTitle("Transaction Failed");
+  const title = createTitle(S.txFailedTitle);
   title.anchor.set(0.5);
   title.x = POPUP_WIDTH / 2;
   title.y = 180;
   c.addChild(title);
 
-  const errMsg = createText(ctx.sendError || "Unknown error", {
+  const errMsg = createText(ctx.sendError || S.unknownError, {
     color: COLORS.danger,
     align: "center",
     maxWidth: POPUP_WIDTH - PADDING * 2,
@@ -368,7 +368,7 @@ export function sendErrorScreen(): Screen {
   c.addChild(errMsg);
 
   const retryBtn = createButton({
-    label: "Retry",
+    label: S.retry,
     onTap: () => sendEvent({ type: "RETRY" }),
   });
   retryBtn.x = PADDING;
@@ -376,7 +376,7 @@ export function sendErrorScreen(): Screen {
   c.addChild(retryBtn);
 
   const cancelBtn = createButton({
-    label: "Back to Wallet",
+    label: S.backToWallet,
     ...SECONDARY_BTN,
     onTap: () => sendEvent({ type: "CANCEL" }),
   });
