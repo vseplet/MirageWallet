@@ -1,11 +1,14 @@
 import { Container } from "pixi.js";
-import { createButton, createTitle, createText, createPanel, type Screen } from "@/ui";
+import { createButton, createTitle, createText, createPanel, removeHtmlElements, type Screen } from "@/ui";
 import { send } from "@/state";
 import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS, FONT_SIZE } from "@/config";
 import * as wm from "@/wallet-manager";
+import QRCode from "qrcode";
 
 export function receiveScreen(): Screen {
   const c = new Container();
+  let qrCanvas: HTMLCanvasElement | undefined;
+
   let fullAddr = "";
   try {
     fullAddr = wm.getAddress();
@@ -21,20 +24,23 @@ export function receiveScreen(): Screen {
   hint.y = 50;
   c.addChild(hint);
 
-  const panel = createPanel(POPUP_WIDTH - PADDING * 2, 80);
+  // Address panel
+  const panel = createPanel(POPUP_WIDTH - PADDING * 2, 56);
   panel.x = PADDING;
-  panel.y = 90;
+  panel.y = 250;
   c.addChild(panel);
 
   const addrText = createText(fullAddr, {
-    fontSize: 11,
+    fontSize: 10,
     color: COLORS.text,
     maxWidth: POPUP_WIDTH - PADDING * 4,
   });
-  addrText.x = PADDING + 12;
-  addrText.y = 105;
+  addrText.anchor.set(0.5);
+  addrText.x = POPUP_WIDTH / 2;
+  addrText.y = 278;
   c.addChild(addrText);
 
+  // Feedback
   const feedbackText = createText("", {
     fontSize: FONT_SIZE.small,
     color: COLORS.success,
@@ -42,9 +48,10 @@ export function receiveScreen(): Screen {
   });
   feedbackText.anchor.set(0.5);
   feedbackText.x = POPUP_WIDTH / 2;
-  feedbackText.y = 258;
+  feedbackText.y = 380;
   c.addChild(feedbackText);
 
+  // Copy button
   const copyBtn = createButton({
     label: "Copy Address",
     onTap: async () => {
@@ -58,9 +65,10 @@ export function receiveScreen(): Screen {
     },
   });
   copyBtn.x = PADDING;
-  copyBtn.y = 200;
+  copyBtn.y = 320;
   c.addChild(copyBtn);
 
+  // Back
   const backBtn = createButton({
     label: "Back",
     color: 0x16213e,
@@ -72,5 +80,33 @@ export function receiveScreen(): Screen {
   backBtn.y = POPUP_HEIGHT - 68;
   c.addChild(backBtn);
 
-  return { container: c };
+  return {
+    container: c,
+    onEnter: async () => {
+      if (!fullAddr) return;
+      try {
+        // Render QR to a real canvas element overlaid on top
+        qrCanvas = document.createElement("canvas");
+        const qrSize = 160;
+        await QRCode.toCanvas(qrCanvas, fullAddr, {
+          width: qrSize,
+          margin: 2,
+          color: { dark: "#ffffff", light: "#1a1a2e" },
+        });
+        Object.assign(qrCanvas.style, {
+          position: "absolute",
+          left: `${(POPUP_WIDTH - qrSize) / 2}px`,
+          top: "80px",
+          borderRadius: "8px",
+        });
+        document.body.appendChild(qrCanvas);
+      } catch {
+        // Fallback: show text
+      }
+    },
+    onExit: () => {
+      removeHtmlElements(qrCanvas);
+      qrCanvas = undefined;
+    },
+  };
 }
