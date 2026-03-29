@@ -182,6 +182,13 @@ describe("searchTransactions", () => {
     expect(searchTransactions(txs, "10.0")).toHaveLength(1);
   });
 
+  test("search by signed amount (+/-)", () => {
+    expect(searchTransactions(txs, "+1.5")).toHaveLength(1);   // incoming
+    expect(searchTransactions(txs, "-10.0")).toHaveLength(1);  // outgoing
+    expect(searchTransactions(txs, "-1.5")).toHaveLength(0);   // 1.5 is incoming, not outgoing
+    expect(searchTransactions(txs, "+10.0")).toHaveLength(0);  // 10.0 is outgoing, not incoming
+  });
+
   test("search by comment", () => {
     expect(searchTransactions(txs, "coffee")).toHaveLength(1);
     expect(searchTransactions(txs, "nft")).toHaveLength(1);

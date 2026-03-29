@@ -172,14 +172,17 @@ function extractComment(body: import("@ton/core").Cell | undefined): string {
 export function searchTransactions(txs: TxInfo[], query: string): TxInfo[] {
   const q = query.toLowerCase().trim();
   if (!q) return txs;
-  return txs.filter(
-    (tx) =>
+  return txs.filter((tx) => {
+    const signedAmount = tx.incoming ? `+${tx.amount}` : `-${tx.amount}`;
+    return (
       tx.from.toLowerCase().includes(q) ||
       tx.to.toLowerCase().includes(q) ||
       tx.amount.includes(q) ||
+      signedAmount.includes(q) ||
       tx.comment.toLowerCase().includes(q) ||
-      tx.hash.toLowerCase().includes(q),
-  );
+      tx.hash.toLowerCase().includes(q)
+    );
+  });
 }
 
 // ── Send ────────────────────────────────────────────────
