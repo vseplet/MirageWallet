@@ -1,181 +1,148 @@
 import { Container } from "pixi.js";
-import {
-  createButton,
-  createTitle,
-  createText,
-  createHtmlInput,
-  removeHtmlElements,
-  type Screen,
-} from "@/ui";
+import { createTitle, createText, type Screen } from "@/ui";
 import { send, actor } from "@/state";
 import { POPUP_WIDTH, POPUP_HEIGHT, PADDING, COLORS } from "@/config";
+import { createVirtualKeyboard } from "@/virtual-keyboard";
 import * as wm from "@/wallet-manager";
 
 // ── SET_PASSWORD ────────────────────────────────────────
 
 export function setPasswordScreen(): Screen {
   const c = new Container();
-  let passInput: HTMLInputElement | undefined;
-  let confirmInput: HTMLInputElement | undefined;
+  let step: "password" | "confirm" = "password";
+  let firstPassword = "";
 
   const title = createTitle("Set Password");
   title.x = PADDING;
-  title.y = 60;
+  title.y = 14;
   c.addChild(title);
 
-  const hint = createText("This password encrypts your wallet locally.", { fontSize: 13 });
-  hint.x = PADDING;
-  hint.y = 95;
-  c.addChild(hint);
+  const stepLabel = createText("Step 1: Enter password (min 6 chars)", {
+    fontSize: 13,
+    color: COLORS.accent,
+  });
+  stepLabel.x = PADDING;
+  stepLabel.y = 44;
+  c.addChild(stepLabel);
 
   const errorText = createText("", { color: COLORS.danger, fontSize: 12 });
-  errorText.x = PADDING;
-  errorText.y = 260;
+  errorText.anchor.set(0.5);
+  errorText.x = POPUP_WIDTH / 2;
+  errorText.y = POPUP_HEIGHT - 16;
   c.addChild(errorText);
 
-  const statusText = createText("", { color: COLORS.textMuted, fontSize: 12 });
-  statusText.x = PADDING;
-  statusText.y = 280;
-  c.addChild(statusText);
-
-  const btn = createButton({
-    label: "Continue",
-    onTap: async () => {
-      const p = passInput?.value ?? "";
-      const confirm = confirmInput?.value ?? "";
-      if (p.length < 6) {
-        errorText.text = "Password must be at least 6 characters";
-        return;
-      }
-      if (p !== confirm) {
-        errorText.text = "Passwords do not match";
-        return;
-      }
-
-      errorText.text = "";
-      statusText.text = "Creating wallet...";
-
-      try {
-        const ctx = actor.getSnapshot().context;
-        if (ctx.mnemonic.length > 0) {
-          // Import flow: mnemonic was provided
-          await wm.importFromMnemonic(ctx.mnemonic, p);
-        } else {
-          // Create flow: generate new
-          await wm.create(p);
+  const kb = createVirtualKeyboard({
+    y: 66,
+    onSubmit: async (value) => {
+      if (step === "password") {
+        if (value.length < 6) {
+          errorText.text = "Password must be at least 6 characters";
+          return;
         }
-        send({ type: "PASSWORD_SET" });
-      } catch (err) {
-        statusText.text = "";
-        errorText.text = `Error: ${err instanceof Error ? err.message : err}`;
+        firstPassword = value;
+        step = "confirm";
+        stepLabel.text = "Step 2: Confirm password";
+        errorText.text = "";
+        kb.clear();
+        kb.shuffle();
+      } else {
+        if (value !== firstPassword) {
+          errorText.text = "Passwords do not match. Try again.";
+          step = "password";
+          firstPassword = "";
+          stepLabel.text = "Step 1: Enter password (min 6 chars)";
+          kb.clear();
+          kb.shuffle();
+          return;
+        }
+
+        errorText.text = "";
+        stepLabel.text = "Creating wallet...";
+
+        try {
+          const ctx = actor.getSnapshot().context;
+          if (ctx.mnemonic.length > 0) {
+            await wm.importFromMnemonic(ctx.mnemonic, value);
+          } else {
+            await wm.create(value);
+          }
+          send({ type: "PASSWORD_SET" });
+        } catch (err) {
+          stepLabel.text = "Step 1: Enter password (min 6 chars)";
+          errorText.text = `Error: ${err instanceof Error ? err.message : err}`;
+        }
       }
     },
   });
-  btn.x = PADDING;
-  btn.y = POPUP_HEIGHT - 90;
-  c.addChild(btn);
+  c.addChild(kb.container);
 
-  return {
-    container: c,
-    onEnter: () => {
-      passInput = createHtmlInput({
-        x: PADDING,
-        y: 140,
-        width: POPUP_WIDTH - PADDING * 2,
-        placeholder: "Password (min 6 chars)",
-        type: "password",
-      });
-      confirmInput = createHtmlInput({
-        x: PADDING,
-        y: 195,
-        width: POPUP_WIDTH - PADDING * 2,
-        placeholder: "Confirm password",
-        type: "password",
-      });
-    },
-    onExit: () => {
-      removeHtmlElements(passInput, confirmInput);
-      passInput = undefined;
-      confirmInput = undefined;
-    },
-  };
+  return { container: c };
 }
 
 // ── UNLOCK ──────────────────────────────────────────────
 
 export function unlockScreen(): Screen {
   const c = new Container();
-  let passInput: HTMLInputElement | undefined;
 
   const title = createTitle("Unlock Wallet");
-  title.anchor.set(0.5);
-  title.x = POPUP_WIDTH / 2;
-  title.y = 120;
+  title.x = PADDING;
+  title.y = 14;
   c.addChild(title);
 
+  const hint = createText("Enter your password", {
+    fontSize: 13,
+    color: COLORS.textDim,
+  });
+  hint.x = PADDING;
+  hint.y = 44;
+  c.addChild(hint);
+
   const errorText = createText("", { color: COLORS.danger, fontSize: 12 });
-  errorText.x = PADDING;
-  errorText.y = 225;
+  errorText.anchor.set(0.5);
+  errorText.x = POPUP_WIDTH / 2;
+  errorText.y = POPUP_HEIGHT - 40;
   c.addChild(errorText);
 
-  const statusText = createText("", { color: COLORS.textMuted, fontSize: 12 });
-  statusText.x = PADDING;
-  statusText.y = 245;
-  c.addChild(statusText);
-
-  const unlockBtn = createButton({
-    label: "Unlock",
-    onTap: async () => {
-      const p = passInput?.value ?? "";
-      if (!p) {
+  const kb = createVirtualKeyboard({
+    y: 66,
+    onSubmit: async (value) => {
+      if (!value) {
         errorText.text = "Enter your password";
         return;
       }
 
       errorText.text = "";
-      statusText.text = "Decrypting...";
+      hint.text = "Decrypting...";
 
       try {
-        await wm.unlock(p);
+        await wm.unlock(value);
         send({ type: "UNLOCK" });
       } catch {
-        statusText.text = "";
+        hint.text = "Enter your password";
         errorText.text = "Wrong password";
+        kb.clear();
+        kb.shuffle();
       }
     },
   });
-  unlockBtn.x = PADDING;
-  unlockBtn.y = 270;
-  c.addChild(unlockBtn);
+  c.addChild(kb.container);
 
-  const resetBtn = createButton({
-    label: "Reset Wallet",
+  // Reset link at the bottom
+  const resetText = createText("Reset Wallet", {
+    fontSize: 12,
     color: COLORS.danger,
-    hoverColor: COLORS.dangerHover,
-    pressColor: COLORS.dangerPress,
-    onTap: () => {
-      wm.reset();
-      send({ type: "RESET" });
-    },
+    align: "center",
   });
-  resetBtn.x = PADDING;
-  resetBtn.y = POPUP_HEIGHT - 70;
-  c.addChild(resetBtn);
+  resetText.anchor.set(0.5);
+  resetText.x = POPUP_WIDTH / 2;
+  resetText.y = POPUP_HEIGHT - 16;
+  resetText.eventMode = "static";
+  resetText.cursor = "pointer";
+  resetText.on("pointerdown", () => {
+    wm.reset();
+    send({ type: "RESET" });
+  });
+  c.addChild(resetText);
 
-  return {
-    container: c,
-    onEnter: () => {
-      passInput = createHtmlInput({
-        x: PADDING,
-        y: 170,
-        width: POPUP_WIDTH - PADDING * 2,
-        placeholder: "Password",
-        type: "password",
-      });
-    },
-    onExit: () => {
-      removeHtmlElements(passInput);
-      passInput = undefined;
-    },
-  };
+  return { container: c };
 }

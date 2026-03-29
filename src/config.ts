@@ -33,6 +33,9 @@ export const COLORS = {
 
   inputBg: 0x0f3460,
   inputBorder: 0x6c63ff,
+
+  keyLetter: 0x0f3460,
+  keyDigit: 0x1a4a6e,
 } as const;
 
 // ── Typography ───────────────────────────────────────────
@@ -57,6 +60,15 @@ export const TON_TESTNET_EXPLORER = "https://testnet.tonscan.org";
 
 // ── Polling ─────────────────────────────────────────────
 export const POLL_INTERVAL_MS = 30_000;
+
+// ── Virtual Keyboard ────────────────────────────────────
+export const VK_COLS = 6;
+export const VK_KEY_HEIGHT = 46;
+export const VK_GAP = 4;
+export const VK_DISPLAY_HEIGHT = 44;
+export const VK_MAX_LENGTH = 32;
+export const VK_KEY_RADIUS = 8;
+export const VK_DISPLAY_RADIUS = 10;
 
 // ── Address Guard ────────────────────────────────────────
 export const ADDRESS_HIGHLIGHT_PREFIX = 6;
