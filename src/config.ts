@@ -35,8 +35,8 @@ export const COLORS = {
   inputBorder: 0x6c63ff,
 
   keyConsonant: 0x0f3460,
-  keyVowel: 0x1a4a6e,
-  keyDigit: 0x234e70,
+  keyVowel: 0x2d6a4f,
+  keyDigit: 0x4a3f6b,
 } as const;
 
 // ── Typography ───────────────────────────────────────────

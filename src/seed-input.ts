@@ -4,6 +4,7 @@ import {
   COLORS,
   FONT_FAMILY,
   POPUP_WIDTH,
+  POPUP_HEIGHT,
   PADDING,
   MNEMONIC_WORD_COUNT,
   VK_GAP,
@@ -52,7 +53,6 @@ function createKey(
   onTap: () => void,
   color: number = COLORS.keyConsonant,
   fontSize = 18,
-  hideLabel = false,
 ): Container {
   const c = new Container();
   c.eventMode = "static";
@@ -67,7 +67,7 @@ function createKey(
   draw(color);
 
   const text = new Text({
-    text: hideLabel ? "\u2022" : label,
+    text: label,
     style: new TextStyle({
       fontFamily: FONT_FAMILY,
       fontSize,
@@ -82,15 +82,9 @@ function createKey(
   c.addChild(bg);
   c.addChild(text);
 
-  c.on("pointerover", () => {
-    if (hideLabel) text.text = label;
-  });
-  c.on("pointerout", () => {
-    if (hideLabel) text.text = "\u2022";
-    draw(color);
-  });
   c.on("pointerdown", () => draw(COLORS.accentPress));
   c.on("pointerup", () => { draw(color); onTap(); });
+  c.on("pointerout", () => draw(color));
 
   return c;
 }
@@ -103,6 +97,7 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
   let currentInput = "";
   let keysContainer: Container | null = null;
   let suggestContainer: Container | null = null;
+  let wordsContainer: Container | null = null;
 
   // ── Header: progress ──────────────────────────────────
 
@@ -110,102 +105,135 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
     text: `Word 1 / ${MNEMONIC_WORD_COUNT}`,
     style: new TextStyle({
       fontFamily: FONT_FAMILY,
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: "bold",
       fill: COLORS.accent,
     }),
   });
   progress.x = PADDING;
-  progress.y = 14;
+  progress.y = 10;
   container.addChild(progress);
 
-  // ── Collected words display (compact) ─────────────────
+  // ── Collected words area ──────────────────────────────
 
-  const wordsText = new Text({
-    text: "",
-    style: new TextStyle({
-      fontFamily: FONT_FAMILY,
-      fontSize: 10,
-      fill: COLORS.textMuted,
-      wordWrap: true,
-      wordWrapWidth: GRID_W,
-    }),
-  });
-  wordsText.x = PADDING;
-  wordsText.y = 38;
-  container.addChild(wordsText);
+  function renderCollectedWords() {
+    if (wordsContainer) {
+      container.removeChild(wordsContainer);
+      wordsContainer.destroy({ children: true });
+    }
+    wordsContainer = new Container();
+    wordsContainer.x = PADDING;
+    wordsContainer.y = 30;
+
+    // Grid: 8 cols of small word chips
+    const chipW = 38;
+    const chipH = 16;
+    const chipGap = 2;
+    const chipCols = 8;
+
+    for (let i = 0; i < collectedWords.length; i++) {
+      const word = collectedWords[i]!;
+      const col = i % chipCols;
+      const row = Math.floor(i / chipCols);
+
+      const chip = new Container();
+      chip.eventMode = "static";
+      chip.cursor = "default";
+      chip.x = col * (chipW + chipGap);
+      chip.y = row * (chipH + chipGap);
+
+      const label = new Text({
+        text: `${i + 1}.●●`,
+        style: new TextStyle({
+          fontFamily: FONT_FAMILY,
+          fontSize: 9,
+          fill: COLORS.textMuted,
+        }),
+      });
+      chip.addChild(label);
+
+      // Hit area
+      const hit = new Graphics();
+      hit.rect(0, 0, chipW, chipH);
+      hit.fill({ color: 0x000000, alpha: 0.001 });
+      chip.addChild(hit);
+
+      chip.on("pointerover", () => {
+        label.text = `${i + 1}.${word}`;
+        label.style.fill = COLORS.text;
+      });
+      chip.on("pointerout", () => {
+        label.text = `${i + 1}.●●`;
+        label.style.fill = COLORS.textMuted;
+      });
+
+      wordsContainer.addChild(chip);
+    }
+
+    container.addChild(wordsContainer);
+  }
 
   // ── Current input display ─────────────────────────────
 
+  // Dynamic Y based on collected words rows
+  function getInputY(): number {
+    const rows = Math.ceil(collectedWords.length / 8);
+    return 30 + rows * 18 + 4;
+  }
+
   const inputBg = new Graphics();
-  inputBg.roundRect(0, 0, GRID_W, 40, 10);
-  inputBg.fill(COLORS.inputBg);
-  inputBg.stroke({ width: 1, color: COLORS.inputBorder });
-  inputBg.x = PADDING;
-  inputBg.y = 62;
   container.addChild(inputBg);
 
   const charsContainer = new Container();
-  charsContainer.x = PADDING + 10;
-  charsContainer.y = 64;
   container.addChild(charsContainer);
 
-  function renderInputChars() {
+  function renderInput() {
+    const y = getInputY();
+
+    inputBg.clear();
+    inputBg.roundRect(0, 0, GRID_W, 36, 8);
+    inputBg.fill(COLORS.inputBg);
+    inputBg.stroke({ width: 1, color: COLORS.inputBorder });
+    inputBg.x = PADDING;
+    inputBg.y = y;
+
+    // Clear chars
     while (charsContainer.children.length) {
       charsContainer.removeChildAt(0);
     }
+    charsContainer.x = PADDING + 10;
+    charsContainer.y = y + 2;
+
     for (let i = 0; i < currentInput.length; i++) {
       const ch = currentInput[i]!;
-      const charContainer = new Container();
-      charContainer.eventMode = "static";
-      charContainer.cursor = "default";
+      const cc = new Container();
+      cc.eventMode = "static";
+      cc.cursor = "default";
 
-      const charText = new Text({
+      const ct = new Text({
         text: "\u25CF",
-        style: new TextStyle({
-          fontFamily: FONT_FAMILY,
-          fontSize: 20,
-          fill: "#ffffff",
-        }),
+        style: new TextStyle({ fontFamily: FONT_FAMILY, fontSize: 18, fill: "#ffffff" }),
       });
-      charText.y = 8;
-      charContainer.addChild(charText);
+      ct.y = 6;
+      cc.addChild(ct);
 
-      // Hit area for hover
-      const hitArea = new Graphics();
-      hitArea.rect(0, 0, 18, 36);
-      hitArea.fill({ color: 0x000000, alpha: 0.001 });
-      charContainer.addChild(hitArea);
+      const hit = new Graphics();
+      hit.rect(0, 0, 16, 32);
+      hit.fill({ color: 0x000000, alpha: 0.001 });
+      cc.addChild(hit);
 
-      charContainer.on("pointerover", () => { charText.text = ch; });
-      charContainer.on("pointerout", () => { charText.text = "\u25CF"; });
+      cc.on("pointerover", () => { ct.text = ch; });
+      cc.on("pointerout", () => { ct.text = "\u25CF"; });
 
-      charContainer.x = i * 18;
-      charsContainer.addChild(charContainer);
+      cc.x = i * 16;
+      charsContainer.addChild(cc);
     }
   }
 
-  // ── Error text ────────────────────────────────────────
+  // ── Suggestions ───────────────────────────────────────
 
-  const errorText = new Text({
-    text: "",
-    style: new TextStyle({
-      fontFamily: FONT_FAMILY,
-      fontSize: 11,
-      fill: COLORS.danger,
-    }),
-  });
-  errorText.anchor.set(0.5);
-  errorText.x = POPUP_WIDTH / 2;
-  errorText.y = 490;
-  container.addChild(errorText);
-
-  // ── Update functions ──────────────────────────────────
-
-  function updateDisplay() {
-    renderInputChars();
-    progress.text = `Word ${collectedWords.length + 1} / ${MNEMONIC_WORD_COUNT}`;
-    wordsText.text = collectedWords.map((w, i) => `${i + 1}.\u25CF\u25CF\u25CF`).join("  ");
+  function getSuggestY(): number {
+    return getInputY() + 42;
   }
 
   function updateSuggestions() {
@@ -220,14 +248,14 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
 
     suggestContainer = new Container();
     suggestContainer.x = PADDING;
-    suggestContainer.y = 108;
+    suggestContainer.y = getSuggestY();
 
     const btnW = Math.floor((GRID_W - VK_GAP * (SUGGEST_MAX - 1)) / SUGGEST_MAX);
-    const btnH = 34;
+    const btnH = 30;
 
     for (let i = 0; i < suggestions.length; i++) {
       const word = suggestions[i]!;
-      const btn = createKey(word, btnW, btnH, () => selectWord(word), COLORS.accent, 13);
+      const btn = createKey(word, btnW, btnH, () => selectWord(word), COLORS.accent, 12);
       btn.x = i * (btnW + VK_GAP);
       suggestContainer.addChild(btn);
     }
@@ -235,46 +263,54 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
     container.addChild(suggestContainer);
   }
 
+  // ── Actions ───────────────────────────────────────────
+
   function selectWord(word: string) {
     collectedWords.push(word);
     currentInput = "";
-    errorText.text = "";
 
     if (collectedWords.length === MNEMONIC_WORD_COUNT) {
-      opts.onComplete(collectedWords);
+      opts.onComplete([...collectedWords]);
       return;
     }
 
-    updateDisplay();
-    updateSuggestions();
-    renderKeys();
+    updateAll();
   }
 
   function onChar(ch: string) {
     if (currentInput.length >= 12) return;
     currentInput += ch;
-    updateDisplay();
-    updateSuggestions();
+    updateAll();
   }
 
   function onBackspace() {
     if (currentInput.length > 0) {
       currentInput = currentInput.slice(0, -1);
     } else if (collectedWords.length > 0) {
-      // Undo last word
       currentInput = collectedWords.pop()!;
     }
-    updateDisplay();
+    updateAll();
+  }
+
+  function updateAll() {
+    progress.text = `Word ${collectedWords.length + 1} / ${MNEMONIC_WORD_COUNT}`;
+    renderCollectedWords();
+    renderInput();
     updateSuggestions();
+    renderKeys();
   }
 
   // ── Keyboard ──────────────────────────────────────────
 
+  function getKbY(): number {
+    const hasSuggestions = getSuggestions(currentInput).length > 0;
+    return getSuggestY() + (hasSuggestions ? 36 : 0);
+  }
+
   const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
   const cols = 7;
-  const keyH = 42;
+  const keyH = 38;
   const keyW = Math.floor((GRID_W - VK_GAP * (cols - 1)) / cols);
-  const kbY = 148;
 
   function renderKeys() {
     if (keysContainer) {
@@ -284,7 +320,7 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
 
     keysContainer = new Container();
     keysContainer.x = PADDING;
-    keysContainer.y = kbY;
+    keysContainer.y = getKbY();
 
     const shuffled = shuffleArray(LETTERS);
 
@@ -304,23 +340,35 @@ export function createSeedInput(opts: SeedInputOpts): SeedInput {
     container.addChild(keysContainer);
   }
 
-  // ── Fixed bottom buttons ───────────────────────────────
+  // ── Fixed bottom: Del + Confirm + Cancel ──────────────
 
-  const bottomY = 400;
-  const halfW = Math.floor((GRID_W - VK_GAP) / 2);
+  const bottomY = POPUP_HEIGHT - 100;
+  const thirdW = Math.floor((GRID_W - VK_GAP * 2) / 3);
 
-  const backspace = createKey("\u2190 Del", halfW, 42, onBackspace, COLORS.danger, 13);
+  const backspace = createKey("\u2190 Del", thirdW, 38, onBackspace, COLORS.danger, 12);
   backspace.x = PADDING;
   backspace.y = bottomY;
   container.addChild(backspace);
 
-  const back = createKey("Cancel", halfW, 42, () => opts.onBack(), COLORS.panel, 13);
-  back.x = PADDING + halfW + VK_GAP;
+  const confirmWord = createKey("Confirm", thirdW, 38, () => {
+    if (currentInput.length < 2) return;
+    // Check if exact match in wordlist
+    if (WORDLIST.includes(currentInput.toLowerCase())) {
+      selectWord(currentInput.toLowerCase());
+    }
+  }, COLORS.accent, 12);
+  confirmWord.x = PADDING + thirdW + VK_GAP;
+  confirmWord.y = bottomY;
+  container.addChild(confirmWord);
+
+  const back = createKey("Cancel", thirdW, 38, () => opts.onBack(), COLORS.panel, 12);
+  back.x = PADDING + (thirdW + VK_GAP) * 2;
   back.y = bottomY;
   container.addChild(back);
 
-  renderKeys();
-  updateDisplay();
+  // ── Init ──────────────────────────────────────────────
+
+  updateAll();
 
   return {
     container,
