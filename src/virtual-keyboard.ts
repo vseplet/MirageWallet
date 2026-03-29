@@ -55,6 +55,7 @@ function createKey(
   h: number,
   onTap: () => void,
   color: number = COLORS.inputBg,
+  hideLabel = false,
 ): Container {
   const c = new Container();
   c.eventMode = "static";
@@ -69,7 +70,7 @@ function createKey(
   draw(color);
 
   const text = new Text({
-    text: label,
+    text: hideLabel ? "\u2022" : label,
     style: new TextStyle({
       fontFamily: FONT_FAMILY,
       fontSize: label.length > 2 ? 13 : 18,
@@ -84,12 +85,18 @@ function createKey(
   c.addChild(bg);
   c.addChild(text);
 
+  c.on("pointerover", () => {
+    if (hideLabel) text.text = label;
+  });
+  c.on("pointerout", () => {
+    if (hideLabel) text.text = "\u2022";
+    draw(color);
+  });
   c.on("pointerdown", () => draw(COLORS.accentPress));
   c.on("pointerup", () => {
     draw(color);
     onTap();
   });
-  c.on("pointerout", () => draw(color));
 
   return c;
 }
@@ -178,7 +185,8 @@ export function createVirtualKeyboard(opts: VirtualKeyboardOpts): VirtualKeyboar
       const ch = shuffled[i]!;
 
       const isDigit = ch >= "0" && ch <= "9";
-      const keyColor = isDigit ? COLORS.keyDigit : COLORS.keyLetter;
+      const isVowel = "aeiou".includes(ch);
+      const keyColor = isDigit ? COLORS.keyDigit : isVowel ? COLORS.keyVowel : COLORS.keyConsonant;
       const key = createKey(ch, KEY_W, VK_KEY_HEIGHT, () => onChar(ch), keyColor);
       key.x = col * (KEY_W + VK_GAP);
       key.y = row * (VK_KEY_HEIGHT + VK_GAP);
