@@ -1,0 +1,25 @@
+{
+  "name": "artwallet",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && bun run scripts/copy-assets.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/chrome": "^0.1.38",
+    "vite-plugin-node-polyfills": "^0.25.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@ton/core": "^0.63.1",
+    "@ton/crypto": "^3.3.0",
+    "@ton/ton": "^16.2.2",
+    "pixi.js": "^8.17.1",
+    "vite": "^8.0.3",
+    "xstate": "^5.30.0"
+  }
+}
