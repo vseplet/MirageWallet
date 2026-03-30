@@ -77,7 +77,7 @@ export function hasVault(): boolean {
 }
 
 export function clearVault(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY_VAULT);
   localStorage.removeItem(STORAGE_KEY_WHITELIST);
 }
 
