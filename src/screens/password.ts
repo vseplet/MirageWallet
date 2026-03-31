@@ -100,8 +100,23 @@ export function unlockScreen(): Screen {
   const errorText = createText("", { color: COLORS.danger, fontSize: 12 });
   errorText.anchor.set(0.5);
   errorText.x = POPUP_WIDTH / 2;
-  errorText.y = POPUP_HEIGHT - 40;
+  errorText.y = POPUP_HEIGHT - 36;
   c.addChild(errorText);
+
+  const resetLink = createText(S.forgotPassword, {
+    fontSize: 12,
+    color: COLORS.textMuted,
+  });
+  resetLink.anchor.set(0.5);
+  resetLink.x = POPUP_WIDTH / 2;
+  resetLink.y = POPUP_HEIGHT - 14;
+  resetLink.eventMode = "static";
+  resetLink.cursor = "pointer";
+  resetLink.on("pointertap", () => {
+    wm.reset();
+    send({ type: "RESET" });
+  });
+  c.addChild(resetLink);
 
   const kb = createVirtualKeyboard({
     y: 66,
@@ -126,7 +141,6 @@ export function unlockScreen(): Screen {
     },
   });
   c.addChild(kb.container);
-
 
   return { container: c };
 }

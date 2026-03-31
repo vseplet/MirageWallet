@@ -36,6 +36,7 @@ export function getAddress(): string {
 
 export function lock(): void {
   wallet = null;
+  cachedBalance = "0";
 }
 
 // ── Create ──────────────────────────────────────────────
@@ -67,6 +68,7 @@ export async function unlock(password: string): Promise<void> {
 
 export function reset(): void {
   wallet = null;
+  cachedBalance = "0";
   clearVault();
 }
 

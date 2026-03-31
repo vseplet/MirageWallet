@@ -61,6 +61,7 @@ export const FONT_SIZE = {
 export const AUTO_LOCK_SECONDS = 60;
 export const MNEMONIC_WORD_COUNT = 24;
 export const TON_DECIMALS = 9;
+export const MIN_GAS_RESERVE_TON = 0.01;
 export const MIN_PASSWORD_LENGTH = 6;
 export const DEFAULT_TX_LIMIT = 20;
 export const FEEDBACK_TIMEOUT_MS = 2000;
@@ -133,6 +134,7 @@ export const S = {
   creatingWallet: "Creating wallet...",
   decrypting: "Decrypting...",
   wrongPassword: "Wrong password",
+  forgotPassword: "Forgot password? Reset wallet",
 
   // Dashboard
   yourAddress: "Your address",

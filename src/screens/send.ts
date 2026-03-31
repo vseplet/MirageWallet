@@ -22,6 +22,7 @@ export function sendScreen(): Screen {
   let addrInput: HTMLInputElement | undefined;
   let amountInput: HTMLInputElement | undefined;
   let pastedValue = "";
+  let clipboardDiverged = false;
   let currentBalance = "0";
 
   const title = createTitle(S.sendTitle);
@@ -69,6 +70,7 @@ export function sendScreen(): Screen {
         ownAddress: ownAddr,
         whitelist: loadWhitelist(),
         clipboardOriginal: pastedValue || undefined,
+        clipboardDiverged,
       });
 
       if (warnings.length > 0) {
@@ -115,6 +117,22 @@ export function sendScreen(): Screen {
       addrInput.addEventListener("paste", (e) => {
         const pasted = e.clipboardData?.getData("text") ?? "";
         pastedValue = pasted;
+        clipboardDiverged = false;
+
+        // Delayed DOM re-read: catch post-paste DOM manipulation
+        const input = addrInput;
+        setTimeout(() => {
+          if (input && input.value.trim() !== pasted.trim() && pasted.trim()) {
+            clipboardDiverged = true;
+          }
+        }, 150);
+
+        // Cross-check async clipboard API vs sync paste data
+        navigator.clipboard?.readText?.().then((current) => {
+          if (current.trim() !== pasted.trim() && pasted.trim() && current.trim()) {
+            clipboardDiverged = true;
+          }
+        }).catch(() => {});
       });
 
       // Use cached balance immediately, then try to refresh
@@ -286,8 +304,10 @@ export function sendPendingScreen(): Screen {
       try {
         const result = await wm.send(ctx.sendTo, ctx.sendAmount);
         if (result.success) {
-          // Add to whitelist on successful send
-          addToWhitelist(ctx.sendTo);
+          // Only add to whitelist when transaction is confirmed on-chain
+          if (result.confirmed) {
+            addToWhitelist(ctx.sendTo);
+          }
           sendEvent({ type: "TX_SUCCESS", txHash: "" });
         } else {
           sendEvent({ type: "TX_ERROR", error: result.error ?? S.txFailed });

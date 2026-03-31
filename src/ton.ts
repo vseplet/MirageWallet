@@ -4,6 +4,8 @@ import { Address, toNano, fromNano, internal, SendMode } from "@ton/core";
 import {
   TON_TESTNET_ENDPOINT,
   TON_API_KEY,
+  TON_DECIMALS,
+  MIN_GAS_RESERVE_TON,
   ADDRESS_HIGHLIGHT_PREFIX,
   ADDRESS_HIGHLIGHT_SUFFIX,
   DEFAULT_TX_LIMIT,
@@ -50,6 +52,7 @@ export interface TxInfo {
 
 export interface SendResult {
   success: boolean;
+  confirmed: boolean;
   error?: string;
 }
 
@@ -205,6 +208,9 @@ async function withRetry<T>(fn: () => Promise<T>, retries = RETRY_COUNT, backoff
   throw new Error("Max retries reached");
 }
 
+const SEQNO_POLL_INTERVAL_MS = 2000;
+const SEQNO_POLL_MAX_ATTEMPTS = 15; // ~30 seconds total
+
 export async function sendTon(
   walletData: WalletData,
   toAddress: string,
@@ -235,10 +241,25 @@ export async function sendTon(
       }),
     );
 
-    return { success: true };
+    // Wait for seqno to increment — confirms the transaction was processed
+    for (let i = 0; i < SEQNO_POLL_MAX_ATTEMPTS; i++) {
+      await delay(SEQNO_POLL_INTERVAL_MS);
+      try {
+        const newSeqno = await contract.getSeqno();
+        if (newSeqno > seqno) {
+          return { success: true, confirmed: true };
+        }
+      } catch {
+        // network hiccup — keep polling
+      }
+    }
+
+    // Message was accepted but not confirmed within timeout
+    return { success: true, confirmed: false };
   } catch (err) {
     return {
       success: false,
+      confirmed: false,
       error: err instanceof Error ? err.message : String(err),
     };
   }
@@ -256,6 +277,7 @@ export function checkAddressGuard(opts: {
   ownAddress: string;
   whitelist: string[];
   clipboardOriginal?: string;
+  clipboardDiverged?: boolean;
 }): AddressWarning[] {
   const warnings: AddressWarning[] = [];
   const addr = opts.address;
@@ -268,11 +290,19 @@ export function checkAddressGuard(opts: {
     });
   }
 
-  // Clipboard hijack check
+  // Clipboard hijack check: sync paste data vs final input value
   if (opts.clipboardOriginal && !addressesEqual(addr, opts.clipboardOriginal)) {
     warnings.push({
       type: "clipboard_changed",
       message: "The address changed after pasting. Possible clipboard hijack.",
+    });
+  }
+
+  // Clipboard divergence: async clipboard API or DOM re-read detected mismatch
+  if (opts.clipboardDiverged) {
+    warnings.push({
+      type: "clipboard_changed",
+      message: "Clipboard content changed unexpectedly. Verify the address carefully.",
     });
   }
 
@@ -338,18 +368,26 @@ export function validateSend(opts: {
     return { valid: false, error: "Invalid TON address" };
   }
 
-  const amount = Number(opts.amount);
-  if (!opts.amount.trim() || isNaN(amount)) {
+  const amountStr = opts.amount.trim();
+  // Strict decimal format: digits, optional single dot, no scientific notation
+  if (!amountStr || !/^\d+(\.\d+)?$/.test(amountStr)) {
     return { valid: false, error: "Enter a valid amount" };
   }
 
+  // Check decimal places don't exceed TON precision (9)
+  const dotIdx = amountStr.indexOf(".");
+  if (dotIdx !== -1 && amountStr.length - dotIdx - 1 > TON_DECIMALS) {
+    return { valid: false, error: `Max ${TON_DECIMALS} decimal places` };
+  }
+
+  const amount = Number(amountStr);
   if (amount <= 0) {
     return { valid: false, error: "Amount must be greater than 0" };
   }
 
   const balance = Number(opts.balance);
-  if (amount > balance) {
-    return { valid: false, error: `Insufficient balance (${opts.balance} TON)` };
+  if (amount + MIN_GAS_RESERVE_TON > balance) {
+    return { valid: false, error: `Insufficient balance. Need ${MIN_GAS_RESERVE_TON} TON for gas (balance: ${opts.balance} TON)` };
   }
 
   return { valid: true };
